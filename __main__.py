@@ -17,23 +17,20 @@ if __name__ == '__main__':
 
     # show_graph(model)
     
-    xor_set = [([0.0, 1.0], 1.0),
-               ([1.0, 0.0], 1.0),
-               ([1.0, 1.0], 0.0),
-               ([0.0, 0.0], 0.0)]
+    xor_set = [([0.0, 1.0], [1.0]),
+               ([1.0, 0.0], [1.0]),
+               ([1.0, 1.0], [0.0]),
+               ([0.0, 0.0], [0.0])]
     
     print("untrained\n")
     print(model)
     for inp, outp in xor_set:
         print(model.evaluate(inp))
 
-    te = 0.0
-    for epoch in range(1):
+    for epoch in range(1000):
         for inp, outp in xor_set:
             model.evaluate(inp, update=True)
-            te = model.fit(outp)
-        # if epoch % 100:
-        print("error: ", te)
+            model.backprop(outp)
 
     # model.reset()
 

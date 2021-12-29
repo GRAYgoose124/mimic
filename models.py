@@ -5,31 +5,34 @@ class Model:
     def __init__(self, layers: list):
         self.layers = layers
 
-    #
-    def fit(self, train_data):
+    def fit(self, expected, learning_rate=0.01, momentum=0.0):
         raise NotImplementedError
 
     def evaluate(self, input_data):
         raise NotImplementedError
 
     def __repr__(self):
-        return "\n".join([layer.__repr__() for layer in self.layers])
+        return "\n".join([f"{i} {layer.__repr__()}" for i, layer in enumerate(self.layers)])
 
     def __str__(self):
         return self.__repr__()
 
 
 class Sequential(Model):
-    def __init__(self, layers):
+    def __init__(self, layers, conntype='random'):
         super().__init__(layers)
 
         self.layers = layers
-        # fully connected hidden
-        for i, _ in enumerate(self.layers):
-            if i < len(self.layers) - 1:
-                self.layers[i].connect(self.layers[i + 1], 'random')
         
-  
+        # fully connected hidden
+        for i, _ in enumerate(self.layers[:-1]):
+            self.layers[i].connect(self.layers[i + 1], conntype)
+
+        self.layers[-1].connected_layers['prev'] = self.layers[-2]
+
+        self.in_layer = self.layers[0]
+        self.hidden_layers = self.layers[1:-1]
+        self.out_layer = self.layers[-1]
 
     def evaluate(self, input_data, update=False):
         # feed-forward
@@ -43,34 +46,34 @@ class Sequential(Model):
         for layer in self.layers:
             layer.reset()
 
-    def fit(self, expected, learning_rate=0.01, momentum=0.):
+    def backprop(self, expected, learning_rate=0.05, momentum=0.0):
         self.out_layer.errors = np.array(self.out_layer.nodes - expected)
 
-        for layer in self.layers[1::-1]:
-            print(layer.weights, layer.connected_layers['next'].errors)
-
-            errors = layer.connected_layers['next'].errors.dot(layer.weights)
-            print(errors)
-
-            errors = errors * layer.error(layer.nodes)
-            update = learning_rate * errors * layer.connected_layers['next'].nodes
-            layer.errors = errors
-            layer.weights -= update
-
-        total_error = 0.0
-        for layer in self.layers:
-            total_error += layer.errors
-        return total_error
+        for layer in reversed(self.layers[:-1]):
+            errors = np.dot(layer.connected_layers['next'].errors, layer.weights.transpose())
+            layer.errors = np.multiply(errors, layer.error(layer.nodes))
+            layer.weights -= learning_rate * np.matmul(layer.errors, layer.error(layer.nodes))
 
 
 if __name__ == '__main__':
     from layers import Dense
-    net = [Dense(2), Dense(3), Dense(3), Dense(4)]
-    model = Sequential(net)
+    net = [Dense(1), Dense(2), Dense(3), Dense(4)]
+    model = Sequential(net, 'full')
 
     print(model)
     print(len(model.layers))
-    for layer in model.layers[1:-1]:
-        print(id(layer.connected_layers['prev']), id(layer), id(layer.connected_layers['next']))
 
-    
+    for layer in model.layers:
+        try:
+            print('l')
+            print(id(layer.connected_layers['prev']))
+            print(id(layer))
+            print(id(layer.connected_layers['next']))
+        except KeyError:
+            pass
+
+
+    print(model.layers[0].__dict__)
+    print(model.layers[1].__dict__)
+    print(model.layers[2].__dict__)
+    print('3', model.layers[3].__dict__)

@@ -10,8 +10,8 @@ class Layer:
         self.connected_layers = {}
 
         self.nodes = np.ones(width)
-        self.weights = []
-        self.errors = []
+        self.weights = np.ones(width)
+        self.errors = np.ones(width)
 
         if squash is None:
             squash = utils.sigmoid
@@ -34,7 +34,6 @@ class Layer:
         return self.__repr__()
     
 
-       
 class Dense(Layer):
     def __init__(self, width: int, squash: callable = None, error: callable = None):
         super().__init__(width, squash, error)
@@ -46,7 +45,7 @@ class Dense(Layer):
             activation = np.array(input_data)
         # hidden and output 
         else:
-            activation = self.squash(np.array(input_data.dot(self.connected_layers['prev'].weights)))
+            activation = self.squash(np.dot(input_data, (self.connected_layers['prev'].weights)))
 
         if update:
             self.nodes = activation
