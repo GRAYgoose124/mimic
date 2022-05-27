@@ -11,8 +11,10 @@ class Model:
     def evaluate(self, input_data):
         raise NotImplementedError
 
+    
     def __repr__(self):
-        return "\n".join([f"{i} {layer.__repr__()}" for i, layer in enumerate(self.layers)])
+        return "\n".join([layer.__repr__() for i, layer in enumerate(self.layers)])
+        # return "\n".join([f"{i} {layer.__repr__()}" for i, layer in enumerate(self.layers)])
 
     def __str__(self):
         return self.__repr__()
@@ -25,8 +27,9 @@ class Sequential(Model):
         self.layers = layers
         
         # fully connected hidden
-        for i, _ in enumerate(self.layers[:-1]):
-            self.layers[i].connect(self.layers[i + 1], conntype)
+        self.layers[0].connect(self.layers[1], 'ones')
+        for i, _ in enumerate(self.layers[1:-1]):
+            self.layers[i + 1].connect(self.layers[i + 2], conntype)
 
         self.layers[-1].connected_layers['prev'] = self.layers[-2]
 
@@ -46,13 +49,22 @@ class Sequential(Model):
         for layer in self.layers:
             layer.reset()
 
-    def backprop(self, expected, learning_rate=0.05, momentum=0.0):
-        self.out_layer.errors = np.array(self.out_layer.nodes - expected)
+    def backprop(self, input_data, expected, learning_rate=0.1, momentum=0.0):
+        self.evaluate(input_data, update=True)
 
-        for layer in reversed(self.layers[:-1]):
-            errors = np.dot(layer.connected_layers['next'].errors, layer.weights.transpose())
-            layer.errors = np.multiply(errors, layer.error(layer.nodes))
-            layer.weights -= learning_rate * np.matmul(layer.errors, layer.error(layer.nodes))
+        self.out_layer.errors = (expected - self.out_layer.nodes) * self.out_layer.nodes * (1 - self.out_layer.nodes) # pd_sigmoid
+        for i, layer in reversed(list(enumerate(self.hidden_layers))):
+            nl = layer.connected_layers['next']
+  
+            delta = (learning_rate * np.multiply(nl.errors, layer.nodes)) + (momentum * layer.errors)
+
+            self.hidden_layers[i].weights = np.subtract(layer.weights, delta)
+            self.hidden_layers[i].errors = (nl.errors * layer.weights) * layer.nodes * (1 - layer.nodes) # pd_sigmoid
+
+        # for i, layer in reversed(list(enumerate(self.hidden_layers))):
+        #     layer.errors = np.dot(layer.connected_layers['next'].errors, layer.weights.transpose())
+        #     gradient = np.matmul(layer.errors, layer.error(layer.nodes))
+        #     self.hidden_layers[i].weights -= learning_rate * gradient
 
 
 if __name__ == '__main__':

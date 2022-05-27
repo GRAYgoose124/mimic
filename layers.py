@@ -19,7 +19,7 @@ class Layer:
 
         if error is None:
             error = utils.pd_sigmoid
-        self.error = vectorize(error)
+        self.error = (lambda x: vectorize(error)(x))(self.nodes)
 
     def activate(self, input_data):
         raise NotImplementedError
@@ -28,7 +28,9 @@ class Layer:
         raise NotImplementedError
 
     def __repr__(self):
-        return " ".join([str(x) for x in zip(self.nodes, self.weights)])
+        return str(self.weights.round(2))
+
+        # return " ".join([str(x) for x in zip(self.nodes.round(2), self.weights.round(2))])
 
     def __str__(self):
         return self.__repr__()
@@ -55,8 +57,8 @@ class Dense(Layer):
     def reset(self):
         self.nodes = np.zeros(self.width)
 
-    def connect(self, next_layer, contype='full'):
-        if contype == 'full':
+    def connect(self, next_layer, contype='ones'):
+        if contype == 'ones':
             self.weights = np.ones(shape=(self.width, next_layer.width))
         elif contype == 'random':
             self.weights = np.random.rand(self.width, next_layer.width)
