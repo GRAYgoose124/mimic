@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     
     print("\ntrained: ", model)
-    # show_graph(model)
+    show_graph(model)
 
     for inp, outp in xor_set:
         res = model.evaluate(inp)

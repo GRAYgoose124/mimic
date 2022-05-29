@@ -20,7 +20,7 @@ class Layer:
 
         if errorf is None:
             errorf = utils.pd_sigmoid
-        self.errorf = (lambda x: vectorize(errorf)(x))
+        self.errorf = vectorize(errorf)
 
     def activate(self, input_data):
         raise NotImplementedError
