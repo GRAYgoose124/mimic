@@ -52,28 +52,16 @@ class Sequential(Model):
     def backprop(self, input_data, expected, learning_rate=0.1, momentum=0.0):
         actual = self.evaluate(input_data, update=True)
 
-        # out_lay_pd_sig = actual * (1 - actual)
-        # self.out_layer.errors = (expected - actual) * out_lay_pd_sig # pd_sigmoid
-
         self.out_layer.error(expected)
         for i, layer in reversed(list(enumerate(self.hidden_layers))):
             nl = layer.connected_layers['next']
   
-            # layer_pd_sig = layer.nodes * layer.nodes * (1 - layer.nodes)
-            # error_sum = np.multiply(nl.errors, layer.weights.transpose())  # Scaling issue? checked with avg - no
-            # error_sum = sum(error_sum)
-            # error_term = np.multiply(error_sum, layer_pd_sig)
-            layer.error()
             delta = (learning_rate * nl.errors * layer.nodes) + (momentum * layer.deltas)
-            new_weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, delta.transpose())]) 
-            self.hidden_layers[i].weights = new_weights # hacked, should just  be able to use -= delta:/
-            self.hidden_layers[i].errors = error_term  # pd_sigmoid
             self.hidden_layers[i].deltas = delta
 
-        # for i, layer in reversed(list(enumerate(self.hidden_layers))):
-        #     layer.errors = np.dot(layer.connected_layers['next'].errors, layer.weights.transpose())
-        #     gradient = np.matmul(layer.errors, layer.error(layer.nodes))
-        #     self.hidden_layers[i].weights -= learning_rate * gradient
+            new_weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, delta)]) 
+            self.hidden_layers[i].weights = new_weights # hacked, should just  be able to use -= delta:/
+            self.hidden_layers[i].errors = layer.error()  # pd_sigmoid
 
 
 if __name__ == '__main__':
