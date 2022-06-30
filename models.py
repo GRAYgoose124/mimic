@@ -31,14 +31,13 @@ class Sequential(Model):
         for i, _ in enumerate(self.layers[1:-1]):
             self.layers[i + 1].connect(self.layers[i + 2], conntype)
 
-        self.layers[-1].connected_layers['prev'] = self.layers[-2]
+        self.layers[-1].connected['prev'] = self.layers[-2]
 
         self.in_layer = self.layers[0]
         self.hidden_layers = self.layers[1:-1]
         self.out_layer = self.layers[-1]
 
     def evaluate(self, input_data, update=False):
-        # feed-forward
         output = input_data
         for layer in self.layers:
             output = layer.activate(output, update)
@@ -54,7 +53,7 @@ class Sequential(Model):
 
         self.out_layer.error(expected)
         for i, layer in reversed(list(enumerate(self.hidden_layers))):
-            nl = layer.connected_layers['next']
+            nl = layer.connected['next']
   
             delta = (learning_rate * nl.errors * layer.nodes) + (momentum * layer.deltas)
             self.hidden_layers[i].deltas = delta
@@ -63,7 +62,7 @@ class Sequential(Model):
             self.hidden_layers[i].weights = new_weights # hacked, should just  be able to use -= delta:/
             self.hidden_layers[i].errors = layer.error()  # pd_sigmoid
 
-
+# rclone test
 if __name__ == '__main__':
     from layers import Dense
     net = [Dense(1), Dense(2), Dense(3), Dense(4)]
@@ -75,9 +74,9 @@ if __name__ == '__main__':
     for layer in model.layers:
         try:
             print('l')
-            print(id(layer.connected_layers['prev']))
+            print(id(layer.connected['prev']))
             print(id(layer))
-            print(id(layer.connected_layers['next']))
+            print(id(layer.connected['next']))
         except KeyError:
             pass
 

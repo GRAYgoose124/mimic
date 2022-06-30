@@ -2,11 +2,11 @@ from numpy import vectorize, e
 import networkx as nx
 import matplotlib.pyplot as  plt
 
-@vectorize
+# @vectorize
 def sigmoid(weighted_sum, gamma=1):
     return 1 / (1 + e ** (-gamma * weighted_sum))
 
-@vectorize
+# @vectorize
 def pd_sigmoid(output):
     return output * (1 - output)
 

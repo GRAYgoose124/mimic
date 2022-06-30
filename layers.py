@@ -7,7 +7,7 @@ import utils
 class Layer:
     def __init__(self, width: int, squash: callable = None, errorf: callable = None):
         self.width = width
-        self.connected_layers = {}
+        self.connected = {}
 
         self.nodes = np.ones(width)
         self.weights = np.ones(width)
@@ -47,11 +47,13 @@ class Dense(Layer):
     def activate(self, input_data, update):
         activation = None
         # input layer
-        if 'prev' not in self.connected_layers:
+        if 'prev' not in self.connected:
             activation = self.squash(np.array(input_data))
         # hidden and output 
         else:
-            activation = self.squash(np.dot(input_data, (self.connected_layers['prev'].weights)))
+            pw = self.connected['prev'].weights
+            ws = np.dot(input_data, pw)
+            activation = self.squash(ws)
 
         if update:
             self.nodes = activation
@@ -70,17 +72,17 @@ class Dense(Layer):
         # self.errors = np.zeros((next_layer.width, self.width))
         self.errors = np.zeros((self.width, next_layer.width))
 
-        self.connected_layers['next'] = next_layer
-        next_layer.connected_layers['prev'] = self
+        self.connected['next'] = next_layer
+        next_layer.connected['prev'] = self
 
     def error(self, expected=None):
-        if 'prev' in self.connected_layers and 'next' in self.connected_layers:
+        if 'prev' in self.connected and 'next' in self.connected:
             pd_sig = self.errorf(self.nodes)
-            error_sum = np.multiply(self.connected_layers['next'].errors, self.weights.transpose())  # Scaling issue? checked with avg - no
-            error_sum = sum(error_sum)
-            error_term = np.multiply(error_sum, pd_sig)
+            error_sum = np.dot(self.connected['next'].errors, self.weights)  # Scaling issue? checked with avg - no
+            # error_sum = sum(error_sum)
+            error_term = np.matmul(error_sum, pd_sig)
 
-        elif 'next' not in self.connected_layers and expected is not None:
+        elif 'next' not in self.connected and expected is not None:
             error_term = (expected - self.nodes) * self.errorf(self.nodes)
 
         self.errors = error_term
