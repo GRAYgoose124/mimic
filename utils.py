@@ -2,11 +2,11 @@ from numpy import vectorize, e
 import networkx as nx
 import matplotlib.pyplot as  plt
 
-
+# @vectorize
 def sigmoid(weighted_sum, gamma=1):
     return 1 / (1 + e ** (-gamma * weighted_sum))
 
-
+# @vectorize
 def pd_sigmoid(output):
     return output * (1 - output)
 
@@ -49,7 +49,8 @@ def show_graph(self):
     nx.draw_networkx_edge_labels(G,
                             pos=pos, 
                             edge_labels=dict([((u,v,), f"{' '}{d['weight']:.2f}") for u,v,d in G.edges(data=True)]), 
-                            alpha=0.5)
+                            alpha=0.5,
+                            label_pos=.3)
     plt.box(False)
 
     plt.show()
