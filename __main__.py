@@ -1,8 +1,8 @@
 import numpy as np
 import logging
 
-from models import Sequential
-from layers import Dense
+from models.sequential import Sequential
+from layers.dense import Dense
 
 from utils import show_graph
 
