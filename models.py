@@ -48,7 +48,7 @@ class Sequential(Model):
         for layer in self.layers:
             layer.reset()
 
-    def backprop(self, input_data, expected, learning_rate=0.1, momentum=0.0):
+    def backprop(self, input_data, expected, learning_rate=0.01, momentum=0.0):
         actual = self.evaluate(input_data, update=True)
 
         self.out_layer.error(expected)

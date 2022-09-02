@@ -32,7 +32,7 @@ class Layer:
         raise NotImplementedError
 
     def __repr__(self):
-        return str(self.weights.round(2))
+        return f"{self.weights.round(2)}"
 
         # return " ".join([str(x) for x in zip(self.nodes.round(2), self.weights.round(2))])
 
@@ -44,16 +44,16 @@ class Dense(Layer):
     def __init__(self, width: int, squash: callable = None, error: callable = None):
         super().__init__(width, squash, error)
 
-    def activate(self, input_data, update):
+    def activate(self, y_k, update):
         activation = None
         # input layer
         if 'prev' not in self.connected:
-            activation = self.squash(np.array(input_data))
+            activation = self.squash(np.array(y_k))
         # hidden and output 
         else:
-            pw = self.connected['prev'].weights
-            ws = np.dot(input_data, pw)
-            activation = self.squash(ws)
+            w_kj = self.connected['prev'].weights
+            x_j = np.dot(y_k, w_kj)
+            activation = self.squash(x_j)
 
         if update:
             self.nodes = activation
@@ -78,12 +78,12 @@ class Dense(Layer):
     def error(self, expected=None):
         if 'prev' in self.connected and 'next' in self.connected:
             pd_sig = self.errorf(self.nodes)
-            error_sum = np.dot(self.connected['next'].errors, self.weights)  # Scaling issue? checked with avg - no
+            error_sum = np.dot(self.connected['next'].errors, self.weights.transpose())  # Scaling issue? checked with avg - no
             # error_sum = sum(error_sum)
             error_term = np.matmul(error_sum, pd_sig)
 
         elif 'next' not in self.connected and expected is not None:
-            error_term = (expected - self.nodes) * self.errorf(self.nodes)
+            error_term = (expected - self.nodes) * self.errorf(expected - self.nodes)
 
         self.errors = error_term
         return error_term

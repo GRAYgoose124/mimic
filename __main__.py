@@ -12,8 +12,8 @@ logger = logging.getLogger()
 
 if __name__ == '__main__':
     model = Sequential([Dense(2),
-                        Dense(2),
-                        Dense(2),
+                        Dense(4),
+                        Dense(3),
                         Dense(1)])
 
     
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     
     print(model)
 
-    for epoch in range(1000):
+    for epoch in range(10000):
         for inp, outp in xor_set:
             model.backprop(inp, outp)
 
