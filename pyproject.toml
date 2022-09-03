@@ -1,3 +1,22 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = 'mimic'
+version = '0.0.3'
+requires-python = ">=3.10"
+license = {text = "GPL3"}
+
+dependencies = [
+    "numpy >= 1.23",
+    "networkx >= 2.6",
+    "matplotlib >= 3.5.1"
+]
+
+[project.scripts]
+mimic = "mimic.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

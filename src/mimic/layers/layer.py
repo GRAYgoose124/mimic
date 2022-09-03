@@ -1,7 +1,8 @@
 import numpy as np
 
 from numpy import vectorize
-import utils
+
+from mimic.utils import sigmoid, pd_sigmoid
 
 
 class Layer:
@@ -15,11 +16,11 @@ class Layer:
         self.deltas = np.zeros(width)
 
         if squash is None:
-            squash = utils.sigmoid
+            squash = sigmoid
         self.squash = vectorize(squash)
 
         if errorf is None:
-            errorf = utils.pd_sigmoid
+            errorf = pd_sigmoid
         self.errorf = vectorize(errorf)
 
     def activate(self, input_data):
