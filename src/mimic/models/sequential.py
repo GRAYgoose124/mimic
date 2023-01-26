@@ -32,20 +32,21 @@ class Sequential(Model):
         for layer in self.layers:
             layer.reset()
 
-    def backprop(self, input_data, expected, learning_rate=0.01, momentum=0.0):
+    def backprop(self, input_data, expected, α=0.01, momentum=0.0):
         actual = self.evaluate(input_data, update=True)
 
         self.out_layer.error(expected)
         for i, layer in reversed(list(enumerate(self.hidden_layers))):
-            nl = layer.connected['next']
+            δj = layer.connected['next'].errors
+            yk = layer.nodes
   
-            delta = (learning_rate * nl.errors * layer.nodes) + (momentum * layer.deltas)
+            delta = (α * δj * yk) + (momentum * layer.deltas)
             self.hidden_layers[i].deltas = delta
+            self.hidden_layers[i].error()
 
-            new_weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, delta)]) 
-            self.hidden_layers[i].weights = new_weights # hacked, should just  be able to use -= delta:/
-            self.hidden_layers[i].errors = layer.error()  # pd_sigmoid
-
+        for layer in self.hidden_layers:
+            new_weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, layer.deltas)]) 
+            layer.weights = new_weights
 
 if __name__ == '__main__':
     from layers import Dense

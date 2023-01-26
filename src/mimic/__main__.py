@@ -13,7 +13,8 @@ logger = logging.getLogger()
 def main():
     model = Sequential([Dense(2),
                     Dense(4),
-                    Dense(3),
+                    Dense(4),
+                    Dense(4),
                     Dense(1)])
 
 

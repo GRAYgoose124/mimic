@@ -15,6 +15,9 @@ class Layer:
         self.errors = np.ones(width)
         self.deltas = np.zeros(width)
 
+
+        self.shape = (width,)
+
         if squash is None:
             squash = sigmoid
         self.squash = vectorize(squash)

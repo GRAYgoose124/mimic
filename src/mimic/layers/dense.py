@@ -32,22 +32,22 @@ class Dense(Layer):
         elif contype == 'random':
             self.weights = np.random.rand(self.width, next_layer.width)
 
-        # self.errors = np.zeros((next_layer.width, self.width))
-        self.errors = np.zeros((self.width, next_layer.width))
+        self.errors = np.zeros((next_layer.width, self.width))
+        # self.errors = np.zeros((self.width, next_layer.width))
 
         self.connected['next'] = next_layer
         next_layer.connected['prev'] = self
 
     def error(self, expected=None):
+        # hidden layers
         if 'prev' in self.connected and 'next' in self.connected:
-            pd_sig = self.errorf(self.nodes)
             error_sum = np.dot(self.connected['next'].errors, self.weights.transpose())  # Scaling issue? checked with avg - no
-            # error_sum = sum(error_sum)
-            error_term = np.matmul(error_sum, pd_sig)
+            error_term = error_sum * self.nodes * (1 - self.nodes)
 
+        # output layer
         elif 'next' not in self.connected and expected is not None:
-            error_term = (expected - self.nodes) * self.errorf(expected - self.nodes)
+            error_term = (expected - self.nodes) * (1 - self.nodes)
 
         self.errors = error_term
-        return error_term
+        #  return error_term
     
