@@ -4,7 +4,7 @@ import logging
 from mimic.models.sequential import Sequential
 from mimic.layers.dense import Dense
 
-from mimic.net_utils import show_graph
+from mimic.net_utils import show_network
 from mimic.data_utils import xor_set, vary
 
 
@@ -26,7 +26,7 @@ def train(model, dataset, steps=1000):
         res = model.evaluate(inp)
         print(f"{inp} -> {outp[0]} == {res}")
 
-    show_graph(model)
+    show_network(model)
 
 
 def main():
