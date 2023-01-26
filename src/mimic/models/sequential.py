@@ -1,7 +1,7 @@
 import numpy as np
 
 from mimic.models.model import Model
-from mimic.utils import pd_sigmoid
+from mimic.net_utils import pd_sigmoid
 
 
 class Sequential(Model):

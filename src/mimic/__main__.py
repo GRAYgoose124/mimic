@@ -4,39 +4,40 @@ import logging
 from mimic.models.sequential import Sequential
 from mimic.layers.dense import Dense
 
-from mimic.utils import show_graph
+from mimic.net_utils import show_graph
+from mimic.data_utils import xor_set, vary
 
 
 logger = logging.getLogger()
 
 
-def main():
-    model = Sequential([Dense(2),
-                    Dense(4),
-                    Dense(4),
-                    Dense(4),
-                    Dense(1)])
+def train(model, dataset, steps=1000):
+    print("Before:\n", model)
 
-
-    xor_set = [([0.0, 1.0], [1.0]),
-               ([1.0, 0.0], [1.0]),
-               ([1.0, 1.0], [0.0]),
-               ([0.0, 0.0], [0.0])]
-    
-    print(model)
-
-    for epoch in range(10000):
-        for inp, outp in xor_set:
+    print(f"\nTraining {steps} steps...")
+    for epoch in range(steps):
+        for inp, outp in vary(dataset):
             model.backprop(inp, outp)
 
-    
-    print("\ntrained: ", model)
-    show_graph(model)
+    print("After:\n", model)
 
-    for inp, outp in xor_set:
+    print("Testing...")
+    for inp, outp in vary(dataset):
         res = model.evaluate(inp)
         print(f"{inp} -> {outp[0]} == {res}")
 
+    show_graph(model)
+
+
+def main():
+    model = Sequential([Dense(2),
+                        Dense(4),
+                        Dense(4),
+                        Dense(4),
+                        Dense(1)])
+
+    # 2 inputs, 1 output
+    train(model, xor_set, steps=1000)
 
 
 if __name__ == '__main__':

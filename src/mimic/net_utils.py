@@ -18,7 +18,7 @@ def show_graph(self):
     # fully connects.. use 0 weights to repr?
     for l_i, l in enumerate(self.layers):
         for n_i, node in enumerate(range(l.width)):
-            G.add_node(f'{l_i}.{n_i}', pos=(l_i, n_i))
+            G.add_node(f'{l_i}.{n_i}', pos=(l_i, n_i), activation=l.nodes[n_i])
 
             if l_i < len(self.layers) - 1:
                 for n_j, node2 in enumerate(range(self.layers[l_i + 1].width)):
@@ -28,6 +28,7 @@ def show_graph(self):
 
     widths = nx.get_edge_attributes(G, 'weight')
     nodelist = G.nodes()
+    activations = nx.get_node_attributes(G, 'activation')
 
     plt.figure(figsize=(12,8))
 
@@ -44,7 +45,7 @@ def show_graph(self):
                             alpha=0.6,
                             arrows=True)
     nx.draw_networkx_labels(G, pos=pos,
-                            labels=dict(zip(nodelist,nodelist)),
+                            labels=dict(zip(nodelist, [f"{x:.2f}" for x in activations.values()])),
                             font_color='white')
     nx.draw_networkx_edge_labels(G,
                             pos=pos, 

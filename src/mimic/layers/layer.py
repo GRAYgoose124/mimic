@@ -2,7 +2,7 @@ import numpy as np
 
 from numpy import vectorize
 
-from mimic.utils import sigmoid, pd_sigmoid
+from mimic.net_utils import sigmoid, pd_sigmoid
 
 
 class Layer:
@@ -15,7 +15,6 @@ class Layer:
         self.errors = np.ones(width)
         self.deltas = np.zeros(width)
 
-
         self.shape = (width,)
 
         if squash is None:
@@ -27,13 +26,35 @@ class Layer:
         self.errorf = vectorize(errorf)
 
     def activate(self, input_data):
+        """
+        Activate the layer using the specified input data.
+
+        """
         raise NotImplementedError
 
-    def connect(self, layers):
+    def connect(self, next_layer, contype=None):
+        """
+        Connect this layer to the next layer using the specified connection type. 
+
+        Parameters
+        ----------
+        next_layer : Layer
+            The next layer to connect to
+        contype : str, optional
+            The type of connection to make, by default None
+
+        """
         raise NotImplementedError
 
     def error(self, expected=None):
         raise NotImplementedError
+
+    def reset(self, weights=False):
+        self.nodes = np.zeros(self.width)
+        if weights:
+            self.weights = np.zeros(self.width)
+            self.errors = np.zeros(self.width)
+            self.deltas = np.zeros(self.width)
 
     def __repr__(self):
         return f"{self.weights.round(2)}"
