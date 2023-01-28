@@ -17,12 +17,12 @@ def train(model, dataset, steps=1000):
     print(f"\nTraining {steps} steps...")
     for epoch in range(steps):
         for inp, outp in vary(dataset):
-            model.backprop(inp, outp)
+            model.fit(inp, outp)
 
     print("After:\n", model)
 
     print("Testing...")
-    for inp, outp in vary(dataset):
+    for inp, outp in (dataset):
         res = model.evaluate(inp)
         print(f"{inp} -> {outp[0]} == {res}")
 

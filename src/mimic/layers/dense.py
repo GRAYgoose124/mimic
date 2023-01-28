@@ -1,3 +1,4 @@
+from mimic.net_utils import pd_sigmoid, sigmoid
 import numpy as np
 
 from .layer import Layer
@@ -23,10 +24,20 @@ class Dense(Layer):
 
         return activation
 
-    def reset(self):
-        self.nodes = np.zeros(self.width)
-
-    def connect(self, next_layer, contype='ones'):
+    def connect(self, next_layer: Layer, contype: str = 'ones'):
+        """
+        Connect this layer to the next layer, densely and using the specified connection type.
+        
+        Parameters
+        ----------
+        next_layer : Layer
+            The next layer to connect to
+        contype : str, optional
+            The type of connection to make, by default 'ones'
+            - 'ones' : fully connect with ones
+            - 'zeros' : fully connect with zeros
+            - 'random' : fully connect with random weights
+        """
         if contype == 'ones':
             self.weights = np.ones(shape=(self.width, next_layer.width))
         elif contype == 'random':
@@ -38,16 +49,19 @@ class Dense(Layer):
         self.connected['next'] = next_layer
         next_layer.connected['prev'] = self
 
-    def error(self, expected=None):
+    def error(self, expected=None, update=True):
         # hidden layers
         if 'prev' in self.connected and 'next' in self.connected:
-            error_sum = np.dot(self.connected['next'].errors, self.weights.transpose())  # Scaling issue? checked with avg - no
-            error_term = error_sum * self.nodes * (1 - self.nodes)
+            # error_sum = np.dot(self.connected['next'].errors, self.weights.transpose())  # Scaling issue? checked with avg - no
+            error_sum = np.dot(self.weights, self.connected['next'].errors)
+            error_term = error_sum * pd_sigmoid(self.nodes)
 
         # output layer
         elif 'next' not in self.connected and expected is not None:
             error_term = (expected - self.nodes) * (1 - self.nodes)
 
-        self.errors = error_term
-        #  return error_term
+        if update:
+            self.errors = error_term
+        else:
+            return error_term
     

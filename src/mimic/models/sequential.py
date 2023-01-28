@@ -28,13 +28,11 @@ class Sequential(Model):
 
         return output
 
-    def reset(self):
-        for layer in self.layers:
-            layer.reset()
-
-    def backprop(self, input_data, expected, α=0.01, momentum=0.0):
+    def fit(self, input_data, expected, α=0.01, momentum=0.0):
+        # backpropagation
         actual = self.evaluate(input_data, update=True)
 
+        # TODO: maybe refactor to pass (expected - actual) ?
         self.out_layer.error(expected)
         for i, layer in reversed(list(enumerate(self.hidden_layers))):
             δj = layer.connected['next'].errors
@@ -47,6 +45,9 @@ class Sequential(Model):
         for layer in self.hidden_layers:
             new_weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, layer.deltas)]) 
             layer.weights = new_weights
+
+        return self.out_layer.errors
+
 
 if __name__ == '__main__':
     from layers import Dense

@@ -7,7 +7,7 @@ xor_set = [([0.0, 1.0], [1.0]),
            ([0.0, 0.0], [0.0])]
 
 
-def rand_dist(value, error=0.1):
+def rand_dist(value, error=0.33):
     return value + np.random.uniform(-error, error, len(value))
 
 

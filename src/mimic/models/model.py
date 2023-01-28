@@ -8,6 +8,9 @@ class Model:
     def evaluate(self, input_data):
         raise NotImplementedError
 
+    def reset(self):
+        for layer in self.layers:
+            layer.reset()
     
     def __repr__(self):
         return "\n".join([layer.__repr__() for i, layer in enumerate(self.layers)])

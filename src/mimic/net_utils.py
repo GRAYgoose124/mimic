@@ -8,7 +8,8 @@ def sigmoid(weighted_sum, gamma=1):
 
 # @vectorize
 def pd_sigmoid(output):
-    return output * (1 - output)
+    out = sigmoid(output)
+    return out * (1 - out)
 
 
 def build_network_graph(N):
@@ -26,6 +27,7 @@ def build_network_graph(N):
 
     G.add_weighted_edges_from(edges)
     return G
+
 
 def show_network(N):
     G = build_network_graph(N)
