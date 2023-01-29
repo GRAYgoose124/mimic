@@ -1,8 +1,16 @@
 class Model:
+    """
+    A general model class that can be used to create different types of models.
+
+    The `fit` and `evaluate` methods are not implemented here, but in the
+    subclasses which inherit from this class. This is because how layers are
+    composed can vary the training method.
+
+    """
     def __init__(self, layers: list):
         self.layers = layers
 
-    def fit(self, expected, learning_rate=0.01, momentum=0.0):
+    def fit(self, input_data, expected, learning_rate=0.01, momentum=0.0):
         raise NotImplementedError
 
     def evaluate(self, input_data):

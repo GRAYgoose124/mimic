@@ -1,21 +1,37 @@
 import numpy as np
 
-from mimic.models.model import Model
+from mimic.models import Model
 from mimic.net_utils import pd_sigmoid
 
 
 class Sequential(Model):
+    """ Sequential model class.
+    
+    The layers in the sequential model are linearly connected.
+
+    The first layer is the input layer, the last layer is the output layer. The
+    layers in between are the hidden layers. Only the hidden layers are trained.
+
+    The model uses back-propagation to train the hidden layers with the `fit` method. 
+    `evaluate` is used to evaluate the model on a given input.
+
+    """
     def __init__(self, layers, conntype='random'):
         super().__init__(layers)
 
         self.layers = layers
         
-        # fully connected hidden
+        # connect the first hidden layer to the input layer
         self.layers[0].connect(self.layers[1], 'ones')
+
+        # fully connected hidden layers
         for i, _ in enumerate(self.layers[1:-1]):
             self.layers[i + 1].connect(self.layers[i + 2], conntype)
 
-        self.layers[-1].connected['prev'] = self.layers[-2]
+        # connect the output layer to the last hidden layer
+        # TODO: maybe refactor to use connect method? Uncertain if this is properly feeding data forward.
+        self.layers[-2].connect(self.layers[-1], 'ones')
+        #self.layers[-1].connected['prev'] = self.layers[-2]
 
         self.in_layer = self.layers[0]
         self.hidden_layers = self.layers[1:-1]
