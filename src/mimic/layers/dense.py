@@ -8,7 +8,7 @@ class Dense(Layer):
     def __init__(self, width: int, squash: callable = None, error: callable = None):
         super().__init__(width, squash, error)
 
-    def activate(self, y_k, update):
+    def activate(self, y_k, update=False):
         activation = None
         # input layer
         if 'prev' not in self.connected:
@@ -62,6 +62,6 @@ class Dense(Layer):
 
         if update:
             self.errors = error_term
-        else:
-            return error_term
+        
+        return error_term
     

@@ -4,29 +4,10 @@ import logging
 from mimic.models.sequential import Sequential
 from mimic.layers.dense import Dense
 
-from mimic.net_utils import show_network
-from mimic.data_utils import xor_set, vary
+from mimic.data_utils import xor_set
 
 
 logger = logging.getLogger()
-
-
-def train(model, dataset, steps=1000):
-    print("Before:\n", model)
-
-    print(f"\nTraining {steps} steps...")
-    for epoch in range(steps):
-        for inp, outp in vary(dataset):
-            model.fit(inp, outp)
-
-    print("After:\n", model)
-
-    print("Testing...")
-    for inp, outp in (dataset):
-        res = model.evaluate(inp)
-        print(f"{inp} -> {outp[0]} == {res}")
-
-    show_network(model)
 
 
 def main():
@@ -36,8 +17,7 @@ def main():
                         Dense(4),
                         Dense(1)])
 
-    # 2 inputs, 1 output
-    train(model, xor_set, steps=1000)
+    model.train(xor_set, epochs=10000, learning_rate=0.076, momentum=0.01)
 
 
 if __name__ == '__main__':

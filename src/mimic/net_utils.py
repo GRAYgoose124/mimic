@@ -1,5 +1,7 @@
 from numpy import vectorize, e
 import networkx as nx
+
+import tkinter
 import matplotlib.pyplot as  plt
 
 # @vectorize
@@ -29,7 +31,7 @@ def build_network_graph(N):
     return G
 
 
-def show_network(N):
+def draw_network(N, filename=None, show=False, save=False):
     G = build_network_graph(N)
 
     plt.figure(figsize=(12,8))
@@ -63,5 +65,13 @@ def show_network(N):
                             label_pos=.3)
 
     plt.box(False)
-    plt.show()
+
+    if save:
+        if filename is None:
+            filename = '../output/network.png'
+
+        plt.savefig(filename)
+    
+    if show:
+        plt.show()
     

@@ -1,7 +1,9 @@
+import os
 import numpy as np
 
 from mimic.models import Model
-from mimic.net_utils import pd_sigmoid
+from mimic.net_utils import pd_sigmoid, draw_network
+from mimic.data_utils import vary
 
 
 class Sequential(Model):
@@ -18,9 +20,9 @@ class Sequential(Model):
     """
     def __init__(self, layers, conntype='random'):
         super().__init__(layers)
-
-        self.layers = layers
-        
+        self.connect(conntype=conntype)
+    
+    def connect(self, conntype='random'):
         # connect the first hidden layer to the input layer
         self.layers[0].connect(self.layers[1], 'ones')
 
@@ -31,7 +33,6 @@ class Sequential(Model):
         # connect the output layer to the last hidden layer
         # TODO: maybe refactor to use connect method? Uncertain if this is properly feeding data forward.
         self.layers[-2].connect(self.layers[-1], 'ones')
-        #self.layers[-1].connected['prev'] = self.layers[-2]
 
         self.in_layer = self.layers[0]
         self.hidden_layers = self.layers[1:-1]
@@ -46,23 +47,48 @@ class Sequential(Model):
 
     def fit(self, input_data, expected, α=0.01, momentum=0.0):
         # backpropagation
+        #   TODO: maybe refactor to pass (expected - actual) ?
         actual = self.evaluate(input_data, update=True)
-
-        # TODO: maybe refactor to pass (expected - actual) ?
         self.out_layer.error(expected)
-        for i, layer in reversed(list(enumerate(self.hidden_layers))):
-            δj = layer.connected['next'].errors
-            yk = layer.nodes
-  
-            delta = (α * δj * yk) + (momentum * layer.deltas)
-            self.hidden_layers[i].deltas = delta
-            self.hidden_layers[i].error()
 
-        for layer in self.hidden_layers:
+        # update weights
+        for i, layer in reversed(list(enumerate(self.hidden_layers))):
+            layer.deltas = (α * layer.connected['next'].errors * layer.nodes) + (momentum * layer.deltas)
+            # Calculate this layer's error for the next layer in backpropagation.
+            layer.error(update=True)
+
+            
             new_weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, layer.deltas)]) 
             layer.weights = new_weights
 
         return self.out_layer.errors
+
+    def train(self, dataset, epochs=1000, learning_rate=0.01, momentum=0.0, output_dir='./output'):
+        # create output directory
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # create subdirectory for this model
+        output_dir = f"{output_dir}/{self.__class__.__name__}"
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        print("Before:\n", self)
+        draw_network(self, filename=f"{output_dir}/untrained.png", save=True)
+
+        print(f"\nTraining {epochs} steps...")
+        for epoch in range(epochs):
+            for inp, outp in vary(dataset):
+                self.fit(inp, outp, α=learning_rate, momentum=momentum)
+
+        print("After:\n", self)
+
+        print("Testing...")
+        for inp, outp in (dataset):
+            res = self.evaluate(inp, update=True)
+
+            print(f"{inp} -> {outp[0]} == {res}")
+            draw_network(self, filename=f"{output_dir}/{inp}{outp}.trained.png", save=True)
 
 
 if __name__ == '__main__':
@@ -81,7 +107,6 @@ if __name__ == '__main__':
             print(id(layer.connected['next']))
         except KeyError:
             pass
-
 
     print(model.layers[0].__dict__)
     print(model.layers[1].__dict__)
