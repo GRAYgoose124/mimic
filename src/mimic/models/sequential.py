@@ -1,9 +1,13 @@
 import os
 import numpy as np
+import logging
 
 from mimic.models import Model
 from mimic.net_utils import pd_sigmoid, draw_network
 from mimic.data_utils import vary
+
+
+logger = logging.getLogger()
 
 
 class Sequential(Model):
@@ -46,20 +50,21 @@ class Sequential(Model):
         return output
 
     def fit(self, input_data, expected, α=0.01, momentum=0.0):
-        # backpropagation
         #   TODO: maybe refactor to pass (expected - actual) ?
         actual = self.evaluate(input_data, update=True)
         self.out_layer.error(expected)
 
-        # update weights
+        # backpropagation
         for i, layer in reversed(list(enumerate(self.hidden_layers))):
+            # Calculate the deltas for this layer using the next layer's error.
             layer.deltas = (α * layer.connected['next'].errors * layer.nodes) + (momentum * layer.deltas)
+            # Update weights
+            layer.weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, layer.deltas)]) 
+
             # Calculate this layer's error for the next layer in backpropagation.
             layer.error(update=True)
 
-            
-            new_weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, layer.deltas)]) 
-            layer.weights = new_weights
+            logger.debug(f"Layer {i} update:\ndeltas:{layer.deltas}\nweights:{layer.weights}\nerrors:{layer.errors}\n")
 
         return self.out_layer.errors
 
@@ -78,7 +83,7 @@ class Sequential(Model):
 
         print(f"\nTraining {epochs} steps...")
         for epoch in range(epochs):
-            for inp, outp in vary(dataset):
+            for inp, outp in vary(dataset, variance=0.15):
                 self.fit(inp, outp, α=learning_rate, momentum=momentum)
 
         print("After:\n", self)
@@ -89,6 +94,9 @@ class Sequential(Model):
 
             print(f"{inp} -> {outp[0]} == {res}")
             draw_network(self, filename=f"{output_dir}/{inp}{outp}.trained.png", save=True)
+
+
+
 
 
 if __name__ == '__main__':

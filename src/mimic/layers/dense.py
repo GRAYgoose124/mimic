@@ -1,7 +1,11 @@
 from mimic.net_utils import pd_sigmoid, sigmoid
 import numpy as np
+import logging
 
 from .layer import Layer
+
+
+logger = logging.getLogger()
 
 
 class Dense(Layer):
@@ -9,20 +13,21 @@ class Dense(Layer):
         super().__init__(width, squash, error)
 
     def activate(self, y_k, update=False):
-        activation = None
+        y_j = None
+
         # input layer
         if 'prev' not in self.connected:
-            activation = self.squash(np.array(y_k))
+            y_j = self.squash(np.array(y_k))
         # hidden and output 
         else:
             w_kj = self.connected['prev'].weights
             x_j = np.dot(y_k, w_kj)
-            activation = self.squash(x_j)
+            y_j = self.squash(x_j)
 
         if update:
-            self.nodes = activation
+            self.nodes = y_j
 
-        return activation
+        return y_j
 
     def connect(self, next_layer: Layer, contype: str = 'ones'):
         """
@@ -43,8 +48,8 @@ class Dense(Layer):
         elif contype == 'random':
             self.weights = np.random.rand(self.width, next_layer.width)
 
-        self.errors = np.zeros((next_layer.width, self.width))
-        # self.errors = np.zeros((self.width, next_layer.width))
+        # self.errors = np.zeros((next_layer.width, self.width))
+        self.errors = np.zeros((self.width, next_layer.width))
 
         self.connected['next'] = next_layer
         next_layer.connected['prev'] = self
@@ -54,9 +59,9 @@ class Dense(Layer):
         if 'prev' in self.connected and 'next' in self.connected:
             # error_sum = np.dot(self.connected['next'].errors, self.weights.transpose())  # Scaling issue? checked with avg - no
             error_sum = np.dot(self.weights, self.connected['next'].errors)
-            error_term = error_sum * pd_sigmoid(self.nodes)
+            error_term = error_sum * self.errorf(self.nodes)
 
-        # output layer
+        # output layer # this is assuming pd_sigmoid network
         elif 'next' not in self.connected and expected is not None:
             error_term = (expected - self.nodes) * (1 - self.nodes)
 
