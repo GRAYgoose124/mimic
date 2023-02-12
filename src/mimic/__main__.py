@@ -4,7 +4,7 @@ import logging
 from mimic.models.sequential import Sequential
 from mimic.layers.dense import Dense
 
-from mimic.data_utils import xor_set
+from mimic.utils.data import xor_set
 
 
 def main():

@@ -3,8 +3,8 @@ import numpy as np
 import logging
 
 from mimic.models import Model
-from mimic.net_utils import pd_sigmoid, draw_network
-from mimic.data_utils import vary
+from mimic.utils.net import pd_sigmoid, draw_network
+from mimic.utils.data import vary
 
 
 logger = logging.getLogger()

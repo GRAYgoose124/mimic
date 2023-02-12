@@ -1,8 +1,8 @@
-from mimic.net_utils import pd_sigmoid, sigmoid
 import numpy as np
 import logging
 
 from .layer import Layer
+from ..utils.net import pd_sigmoid, sigmoid
 
 
 logger = logging.getLogger()

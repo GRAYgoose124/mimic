@@ -2,7 +2,7 @@ import numpy as np
 
 from numpy import vectorize
 
-from mimic.net_utils import sigmoid, pd_sigmoid
+from ..utils.net import sigmoid, pd_sigmoid
 
 
 class Layer:
@@ -55,7 +55,7 @@ class Layer:
             self.weights = np.zeros(self.width)
             self.errors = np.zeros(self.width)
             self.deltas = np.zeros(self.width)
-
+            
     def __repr__(self):
         return f"{self.weights.round(2)}"
 
