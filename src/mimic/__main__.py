@@ -18,7 +18,7 @@ def main():
 
     # model.set_logger(logger)
 
-    model.train(xor_set, epochs=100000, learning_rate=0.01, momentum=0.01)
+    model.train(xor_set, epochs=1000, learning_rate=0.01, momentum=0.01)
 
 
 if __name__ == '__main__':

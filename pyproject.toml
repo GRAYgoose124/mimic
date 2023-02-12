@@ -16,7 +16,6 @@ numpy = "^1.24.1"
 matplotlib = "^3.6.3"
 networkx = "^3.0"
 tk = "^0.1.0"
-compushady = "^0.17.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
@@ -24,3 +23,4 @@ pytest = "^7.2.1"
 [tool.poetry.scripts]
 mimic = "mimic.__main__:main"
 mimic-gpu = "mimic.gpu.__main__:main"
+mimic-app = "mimic.app.__main__:app"

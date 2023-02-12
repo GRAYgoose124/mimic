@@ -56,13 +56,13 @@ class Sequential(Model):
 
         # backpropagation
         for i, layer in reversed(list(enumerate(self.hidden_layers))):
+            # Calculate this layer's error for the next layer in backpropagation.
+            layer.error(update=True)
+
             # Calculate the deltas for this layer using the next layer's error.
             layer.deltas = (α * layer.connected['next'].errors * layer.nodes) + (momentum * layer.deltas)
             # Update weights
             layer.weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, layer.deltas)]) 
-
-            # Calculate this layer's error for the next layer in backpropagation.
-            layer.error(update=True)
 
             logger.debug(f"Layer {i} update:\ndeltas:{layer.deltas}\nweights:{layer.weights}\nerrors:{layer.errors}\n")
 
