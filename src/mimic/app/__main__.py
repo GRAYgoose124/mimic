@@ -13,3 +13,5 @@ def app():
     scene = setup_scene()
 
     render_scene_loop(scene)
+    
+    dpg.destroy_context()

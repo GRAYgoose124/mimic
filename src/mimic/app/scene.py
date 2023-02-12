@@ -30,7 +30,7 @@ def generate_scene():
 
     random_planet = lambda : { "distance": np.random.randint(*default_config["distance"]), 
                                   "angle": np.random.randint(*default_config["angle"]), 
-                                  "moons":  [ [np.random.randint(5, 45), np.random.randint(0, 360)] for _ in range(np.random.randint(0, 10)) ] }
+                                  "moons":  [ [np.random.randint(5, 45), np.random.randint(0, 360)] for _ in range(np.random.randint(1, 5)) ] }
 
     scene = { f"planet{i}": random_planet() for i in range(10) }
 
@@ -57,25 +57,41 @@ def build_dpg_scene(scene, width=500, height=500):
                             dpg.draw_circle([0, 0], 5, color=[255, 0, 255], fill=[255, 0, 255]) # moon
 
 
-def apply_scene_transforms(scene, updates=None):
+def apply_scene_transforms(scene):
     for name, planet in scene.items():
-        planet["angle"] += 0.05
         dpg.apply_transform(name, dpg.create_rotation_matrix(math.pi*planet["angle"]/180.0 , [0, 0, -1])*dpg.create_translation_matrix([planet["distance"], 0]))
 
         for i, moon in enumerate(planet["moons"]):
-            moon[1] += 0.1
             dpg.apply_transform(f"{name}-moon{i}", dpg.create_rotation_matrix(math.pi*moon[1]/180.0 , [0, 0, -1])*dpg.create_translation_matrix([moon[0], 0]))
 
 
+def update_scene_transforms(scene, updated):
+    for tag in updated:
+        # decode tag into scene object
+        if "-" in tag:
+            a, b = tag.split("-moon")
+
+            # apply parent transform
+            dpg.apply_transform(a, dpg.create_rotation_matrix(scene[a]["angle"]/180.0 , [0, 0, -1])*dpg.create_translation_matrix([scene[a]["distance"], 0]))
+
+            scene_obj = scene[a]["moons"][int(b)]
+        else:
+            scene_obj = scene[tag]["distance"], scene[tag]["angle"]
+
+        # apply main transform
+        dpg.apply_transform(tag, dpg.create_rotation_matrix(math.pi*scene_obj[1]/180.0 , [0, 0, -1])*dpg.create_translation_matrix([scene_obj[0], 0]))
+
+
 def render_scene_loop(scene):
-    changed = []
     while dpg.is_dearpygui_running():
+        changed = []
+
         # update scene data
-        # scene["planet1"]["moons"][0][1] += 0.1
+        scene["planet0"]["moons"][0][0] += 0.1
+        # Todo: update on scene access
+        changed.append("planet0-moon0")
 
         # TODO: tag updated values instead of full loop
-        apply_scene_transforms(scene)
+        update_scene_transforms(scene, changed)
 
         dpg.render_dearpygui_frame()
-    
-    dpg.destroy_context()
