@@ -52,11 +52,11 @@ class Sequential(Model):
     def fit(self, input_data, expected, α=0.01, momentum=0.0):
         #   TODO: maybe refactor to pass (expected - actual) ?
         actual = self.evaluate(input_data, update=True)
-        self.out_layer.error(expected)
+        self.out_layer.error(expected, update=True)
 
         # backpropagation
         for i, layer in reversed(list(enumerate(self.hidden_layers))):
-            # Calculate this layer's error for the next layer in backpropagation.
+            # Calculate this layer's error for the next("prev") layer in backpropagation.
             layer.error(update=True)
 
             # Calculate the deltas for this layer using the next layer's error.
@@ -68,32 +68,32 @@ class Sequential(Model):
 
         return self.out_layer.errors
 
-    def train(self, dataset, epochs=1000, learning_rate=0.01, momentum=0.0, output_dir='./output'):
+    def train(model, dataset, epochs=1000, learning_rate=0.01, momentum=0.0, output_dir='./output'):
         # create output directory
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
         # create subdirectory for this model
-        output_dir = f"{output_dir}/{self.__class__.__name__}"
+        output_dir = f"{output_dir}/{model.__class__.__name__}"
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        print("Before:\n", self)
-        draw_network(self, filename=f"{output_dir}/untrained.png", save=True)
+        print("Before:\n", model)
+        draw_network(model, filename=f"{output_dir}/untrained.png", save=True)
 
         print(f"\nTraining {epochs} steps...")
         for epoch in range(epochs):
             for inp, outp in vary(dataset, variance=0.15):
-                self.fit(inp, outp, α=learning_rate, momentum=momentum)
+                model.fit(inp, outp, α=learning_rate, momentum=momentum)
 
-        print("After:\n", self)
+        print("After:\n", model)
 
         print("Testing...")
         for inp, outp in (dataset):
-            res = self.evaluate(inp, update=True)
+            res = model.evaluate(inp, update=True)
 
             print(f"{inp} -> {outp[0]} == {res}")
-            draw_network(self, filename=f"{output_dir}/{inp}{outp}.trained.png", save=True)
+            draw_network(model, filename=f"{output_dir}/{inp}{outp}.trained.png", save=True)
 
 
 

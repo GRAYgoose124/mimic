@@ -3,6 +3,7 @@ import logging
 
 from mimic.models.sequential import Sequential
 from mimic.layers.dense import Dense
+from mimic.optimizers.simpleton import Simpleton
 
 from mimic.utils.data import xor_set
 
@@ -12,8 +13,8 @@ def main():
     logger = logging.getLogger(__name__)
 
     model = Sequential([Dense(2),
-                        Dense(4),
-                        Dense(4),
+                        Dense(2),
+                        Dense(2),
                         Dense(1)])
 
     # model.set_logger(logger)

@@ -10,9 +10,9 @@ class Layer:
         self.width = width
         self.connected = {}
 
-        self.nodes = np.ones(width)
+        self.nodes = np.zeros(width)
         self.weights = np.ones(width)
-        self.errors = np.ones(width)
+        self.errors = np.zeros(width)
         self.deltas = np.zeros(width)
 
         self.shape = (width,)

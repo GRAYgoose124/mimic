@@ -24,6 +24,21 @@ def setup_scene():
     return scene
 
 
+def render_scene_loop(scene):
+    while dpg.is_dearpygui_running():
+        changed = []
+
+        # update scene data
+        scene["planet0"]["moons"][0][0] += 0.1
+        # Todo: update on scene access
+        changed.append("planet0-moon0")
+
+        # TODO: tag updated values instead of full loop
+        update_scene_transforms(scene, changed)
+
+        dpg.render_dearpygui_frame()
+        
+
 def generate_scene():
     base_planet = { "distance": 0, "angle": 0.0, "moons": []}
     default_config = { "distance": (0, 200), "angle": (0.0, 360.0), "moons": []}
@@ -82,16 +97,3 @@ def update_scene_transforms(scene, updated):
         dpg.apply_transform(tag, dpg.create_rotation_matrix(math.pi*scene_obj[1]/180.0 , [0, 0, -1])*dpg.create_translation_matrix([scene_obj[0], 0]))
 
 
-def render_scene_loop(scene):
-    while dpg.is_dearpygui_running():
-        changed = []
-
-        # update scene data
-        scene["planet0"]["moons"][0][0] += 0.1
-        # Todo: update on scene access
-        changed.append("planet0-moon0")
-
-        # TODO: tag updated values instead of full loop
-        update_scene_transforms(scene, changed)
-
-        dpg.render_dearpygui_frame()

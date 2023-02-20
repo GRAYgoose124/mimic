@@ -68,5 +68,8 @@ class Dense(Layer):
         if update:
             self.errors = error_term
         
+        logger.debug(f"WNshape {self.weights.shape} {self.nodes.shape}")
+        logger.debug(f"Layer error: {error_term}")
+
         return error_term
     
