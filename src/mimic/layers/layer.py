@@ -51,13 +51,13 @@ class Layer:
 
     def reset(self, weights=False):
         self.nodes = np.zeros(self.width)
-        if weights:
-            self.weights = np.zeros(self.width)
-            self.errors = np.zeros(self.width)
-            self.deltas = np.zeros(self.width)
+        if weights and self.connected['next']:
+            self.weights = np.zeros(self.width, self.connected['next'].width)
+            self.errors = np.zeros(self.width, self.connected['next'].width)
+            self.deltas = np.zeros(self.width, self.connected['next'].width)
             
     def __repr__(self):
-        return f"{self.weights.round(2)}"
+        return "\n".join([f"\t{i}: ({xy[0]}) w={repr(xy[1])}" for i,xy in enumerate(zip(self.nodes.round(2), self.weights.round(2)))])
 
         # return " ".join([str(x) for x in zip(self.nodes.round(2), self.weights.round(2))])
 

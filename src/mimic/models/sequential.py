@@ -54,19 +54,21 @@ class Sequential(Model):
         actual = self.evaluate(input_data, update=True)
         self.out_layer.error(expected, update=True)
 
+        logger.debug(f"Fit\n\tInput: {input_data}\n\tExpected: {expected}\tActual: {actual}\tOError: {self.out_layer.errors}")
+
         # backpropagation
-        for i, layer in reversed(list(enumerate(self.hidden_layers))):
-            # Calculate this layer's error for the next("prev") layer in backpropagation.
-            layer.error(update=True)
+        for i in reversed(list(range(len(self.hidden_layers)))):
+            layer = self.hidden_layers[i]
 
             # Calculate the deltas for this layer using the next layer's error.
             layer.deltas = (α * layer.connected['next'].errors * layer.nodes) + (momentum * layer.deltas)
             # Update weights
-            layer.weights = np.array([np.subtract(x, y) for x,y in zip(layer.weights, layer.deltas)]) 
+            layer.weights = np.array([np.add(x, y) for x,y in zip(layer.weights, layer.deltas)]) 
 
-            logger.debug(f"Layer {i} update:\ndeltas:{layer.deltas}\nweights:{layer.weights}\nerrors:{layer.errors}\n")
+            logger.debug(f"\n\tHidden layer {i} update:\n\tdeltas:\n{layer.deltas}\n\tweights:\n{layer.weights}")
 
-        return self.out_layer.errors
+            # Calculate this layer's error for the next("prev") layer in backpropagation.
+            layer.error(update=True)
 
     def train(model, dataset, epochs=1000, learning_rate=0.01, momentum=0.0, output_dir='./output'):
         # create output directory
@@ -83,8 +85,10 @@ class Sequential(Model):
 
         print(f"\nTraining {epochs} steps...")
         for epoch in range(epochs):
+            logger.debug(f"\n~~~~~~~~~~~~ Epoch {epoch} ~~~~~~~~~~~~")
             for inp, outp in vary(dataset, variance=0.15):
                 model.fit(inp, outp, α=learning_rate, momentum=momentum)
+                logger.debug(f"Step Error: {model.out_layer.errors}\n")
 
         print("After:\n", model)
 

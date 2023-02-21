@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class Model:
     """
     A general model class that can be used to create different types of models.
@@ -32,7 +37,7 @@ class Model:
             layer.reset()
     
     def __repr__(self):
-        return "\n".join([layer.__repr__() for i, layer in enumerate(self.layers)])
+        return "\n".join([f"{i}:\n{layer.__repr__()}" for i, layer in enumerate(self.layers)])
         # return "\n".join([f"{i} {layer.__repr__()}" for i, layer in enumerate(self.layers)])
 
     def __str__(self):
