@@ -42,38 +42,74 @@ class Dataset:
         return f"Dataset(input_data={self.input_data}, expected_output={self.expected_output})"
 
 
+class ActivationFunction:
+    def fn(self, x):
+        pass
+
+    def derivative(self, x):
+        pass
+
+
+class Sigmoid(ActivationFunction):
+    def fn(self, x):
+        return 1 / (1 + np.exp(-x))
+
+    def derivative(self, x):
+        return x * (1 - x)
+
+
+class ErrorFunction:
+    def fn(self, expected, actual):
+        pass
+
+    def derivative(self, expected, actual):
+        pass
+
+
+class MSE(ErrorFunction):
+    def fn(self, expected, actual):
+        return np.mean(np.square(expected - actual))
+
+    def derivative(self, expected, actual):
+        return expected - actual
+
+
 class MultiLayerNN:
-    def __init__(self, layer_sizes):
+    def __init__(
+        self,
+        layer_sizes,
+        activation_fn: ActivationFunction = Sigmoid(),
+        error_fn: ErrorFunction = MSE(),
+    ):
         self.layer_sizes = layer_sizes
         self.weights = []
         self.activations = []
         self.gradients = []
 
+        self.activation_fn = activation_fn
+        self.error_fn = error_fn
+
         # Initialize weights
         for i in range(len(layer_sizes) - 1):
             self.weights.append(np.random.rand(layer_sizes[i], layer_sizes[i + 1]))
 
-    def sigmoid(self, x):
-        return 1 / (1 + np.exp(-x))
-
-    def sigmoid_derivative(self, x):
-        return x * (1 - x)
-
     def forward_propagate(self, input_data):
         self.activations = [input_data]
         for weight in self.weights:
-            output = self.sigmoid(np.dot(self.activations[-1], weight))
+            output = self.activation_fn.fn(np.dot(self.activations[-1], weight))
             self.activations.append(output)
         return self.activations[-1]
 
-    def backward_propagate(self, output_labels, learning_rate):
-        error = output_labels - self.activations[-1]
-        self.gradients = [error * self.sigmoid_derivative(self.activations[-1])]
+    def backward_propagate(self, output_data, learning_rate):
+        self.gradients = [
+            self.error_fn.derivative(output_data, self.activations[-1])
+            * self.activation_fn.derivative(self.activations[-1])
+        ]
 
         for i in reversed(range(len(self.activations) - 1)):
             gradient = self.gradients[0].dot(
                 self.weights[i].T
-            ) * self.sigmoid_derivative(self.activations[i])
+            ) * self.activation_fn.derivative(self.activations[i])
             self.gradients.insert(0, gradient)
 
         for i in range(len(self.weights)):
@@ -81,12 +117,14 @@ class MultiLayerNN:
                 self.activations[i].T.dot(self.gradients[i + 1]) * learning_rate
             )
 
-        return np.mean(np.square(error))
+        return self.error_fn.fn(output_data, self.activations[-1])
 
 
 class Trainer:
     @staticmethod
-    def train(model, dataset: Dataset, config: TrainingConfig = TrainingConfig()):
+    def train(
+        model: MultiLayerNN, dataset: Dataset, config: TrainingConfig = TrainingConfig()
+    ):
         for epoch in range(config.epochs):
             output = model.forward_propagate(dataset.input_data)
             mse = model.backward_propagate(
@@ -109,19 +147,20 @@ class Trainer:
 
 def main():
     np.set_printoptions(precision=4)
-    nn = MultiLayerNN([3, 8, 4, 2])
-    test_ds = Dataset(
+
+    DS = Dataset(
         input_data=np.array([[0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]]),
         expected_output=np.array([[0, 1], [1, 0], [1, 0], [0, 1]]),
     )
 
-    Trainer.train(nn, test_ds)
+    M = MultiLayerNN([3, 8, 4, 2])
+    Trainer.train(M, DS)
 
     # test
-    for test_in, exp_out in test_ds:
+    for I, expected in DS:
         assert np.allclose(
-            nn.forward_propagate(test_in), exp_out, atol=0.02
-        ), f"Failed! MSE: {nn._trained_mse}"
+            M.forward_propagate(I), expected, atol=0.02
+        ), f"Failed! MSE: {M._trained_mse}"
 
 
 if __name__ == "__main__":
