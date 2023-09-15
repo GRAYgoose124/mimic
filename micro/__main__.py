@@ -1,4 +1,45 @@
+from dataclasses import dataclass
 import numpy as np
+
+
+@dataclass
+class TrainingConfig:
+    learning_rate: float = 0.5
+    epochs: int = 10000
+    momentum: float = 0.0
+
+
+@dataclass
+class Dataset:
+    input_data: np.ndarray
+    expected_output: np.ndarray
+
+    def split(self, test_size=0.2):
+        split_index = int(len(self.input_data) * (1 - test_size))
+        train_data = Dataset(
+            input_data=self.input_data[:split_index],
+            expected_output=self.expected_output[:split_index],
+        )
+        test_data = Dataset(
+            input_data=self.input_data[split_index:],
+            expected_output=self.expected_output[split_index:],
+        )
+        return train_data, test_data
+
+    def __iter__(self):
+        return iter(zip(self.input_data, self.expected_output))
+
+    def __next__(self):
+        return next(self.input_data), next(self.expected_output)
+
+    def __len__(self):
+        return len(self.input_data)
+
+    def __getitem__(self, idx):
+        return self.input_data[idx], self.expected_output[idx]
+
+    def __repr__(self):
+        return f"Dataset(input_data={self.input_data}, expected_output={self.expected_output})"
 
 
 class MultiLayerNN:
@@ -43,35 +84,45 @@ class MultiLayerNN:
         return np.mean(np.square(error))
 
 
-# Initialize input and output
-input_data = np.array([[0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]])
+class Trainer:
+    @staticmethod
+    def train(model, dataset: Dataset, config: TrainingConfig = TrainingConfig()):
+        for epoch in range(config.epochs):
+            output = model.forward_propagate(dataset.input_data)
+            mse = model.backward_propagate(
+                dataset.expected_output, config.learning_rate
+            )
 
-output_labels = np.array([[0, 1], [1, 0], [1, 0], [0, 1]])
+            if epoch % 1000 == 0:
+                print(f"Epoch {epoch}, MSE: {mse}")
 
-# Create neural network instance with 3 layers: 3 neurons in input, 4 in hidden, and 2 in output
-nn = MultiLayerNN([3, 4, 2])
+        print("Final Weights:")
+        for i, w in enumerate(model.weights):
+            print(f"Layer {i+1} weights:")
+            print(w)
 
-# Learning rate and epochs
-learning_rate = 0.25
-epochs = 10000
+        print("Final and Expected Output:")
+        for o, e in zip(output, dataset.expected_output):
+            print(f"Final: {o}, Expected: {e}")
+            model._trained_mse = mse
 
-# Training loop
-for epoch in range(epochs):
-    output = nn.forward_propagate(input_data)
-    mse = nn.backward_propagate(output_labels, learning_rate)
 
-    if epoch % 1000 == 0:
-        print(f"Epoch {epoch}, MSE: {mse}")
+def main():
+    np.set_printoptions(precision=4)
+    nn = MultiLayerNN([3, 8, 4, 2])
+    test_ds = Dataset(
+        input_data=np.array([[0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]]),
+        expected_output=np.array([[0, 1], [1, 0], [1, 0], [0, 1]]),
+    )
 
-print("Final Weights:")
-for i, w in enumerate(nn.weights):
-    print(f"Layer {i+1} weights:")
-    print(w)
+    Trainer.train(nn, test_ds)
 
-print(f"Final Output: {output}, Expected: {output_labels}")
-print(f"Final MSE: {mse}")
+    # test
+    for test_in, exp_out in test_ds:
+        assert np.allclose(
+            nn.forward_propagate(test_in), exp_out, atol=0.02
+        ), f"Failed! MSE: {nn._trained_mse}"
 
-# test
-test_data = np.array([[1, 1, 0]])
-print(f"Test data: {test_data}")
-print(f"Test output: {nn.forward_propagate(test_data)}, Expected: {np.array([[0, 1]])}")
+
+if __name__ == "__main__":
+    main()
