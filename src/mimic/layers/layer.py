@@ -10,9 +10,11 @@ class Layer:
         self.width = width
         self.connected = {}
 
-        self.nodes = np.ones(width)
-        self.weights = np.ones(width)
-        self.errors = np.ones(width)
+        self.nodes = np.zeros(width)
+        self.weights = np.random.normal(0, 0.1, size=width)
+        # self.weights = np.random.uniform(-0.1, 0.1, size=width)
+
+        self.errors = np.zeros(width)
         self.deltas = np.zeros(width)
 
         self.shape = (width,)
@@ -34,7 +36,7 @@ class Layer:
 
     def connect(self, next_layer, contype=None):
         """
-        Connect this layer to the next layer using the specified connection type. 
+        Connect this layer to the next layer using the specified connection type.
 
         Parameters
         ----------
@@ -55,7 +57,7 @@ class Layer:
             self.weights = np.zeros(self.width)
             self.errors = np.zeros(self.width)
             self.deltas = np.zeros(self.width)
-            
+
     def __repr__(self):
         return f"{self.weights.round(2)}"
 
@@ -63,5 +65,3 @@ class Layer:
 
     def __str__(self):
         return self.__repr__()
-    
-

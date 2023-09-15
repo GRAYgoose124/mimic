@@ -16,11 +16,11 @@ class Dense(Layer):
         y_j = None
 
         # input layer
-        if 'prev' not in self.connected:
+        if "prev" not in self.connected:
             y_j = self.squash(np.array(y_k))
-        # hidden and output 
+        # hidden and output
         else:
-            w_kj = self.connected['prev'].weights
+            w_kj = self.connected["prev"].weights
             x_j = np.dot(y_k, w_kj)
             y_j = self.squash(x_j)
 
@@ -29,10 +29,10 @@ class Dense(Layer):
 
         return y_j
 
-    def connect(self, next_layer: Layer, contype: str = 'ones'):
+    def connect(self, next_layer: Layer, contype: str = "gaussian"):
         """
         Connect this layer to the next layer, densely and using the specified connection type.
-        
+
         Parameters
         ----------
         next_layer : Layer
@@ -43,30 +43,27 @@ class Dense(Layer):
             - 'zeros' : fully connect with zeros
             - 'random' : fully connect with random weights
         """
-        if contype == 'ones':
+        if contype == "ones":
             self.weights = np.ones(shape=(self.width, next_layer.width))
-        elif contype == 'random':
+        elif contype == "random":
             self.weights = np.random.rand(self.width, next_layer.width)
+        elif contype == "gaussian":
+            self.weights = np.random.normal(0, 0.1, size=(self.width, next_layer.width))
 
         # self.errors = np.zeros((next_layer.width, self.width))
-        self.errors = np.zeros((self.width, next_layer.width))
+        self.errors = np.zeros((next_layer.width, self.width))
 
-        self.connected['next'] = next_layer
-        next_layer.connected['prev'] = self
+        self.connected["next"] = next_layer
+        next_layer.connected["prev"] = self
 
     def error(self, expected=None, update=True):
-        # hidden layers
-        if 'prev' in self.connected and 'next' in self.connected:
-            # error_sum = np.dot(self.connected['next'].errors, self.weights.transpose())  # Scaling issue? checked with avg - no
-            error_sum = np.dot(self.weights, self.connected['next'].errors)
+        if "prev" in self.connected and "next" in self.connected:
+            error_sum = np.dot(self.connected["next"].errors, self.weights.T)
             error_term = error_sum * self.errorf(self.nodes)
-
-        # output layer # this is assuming pd_sigmoid network
-        elif 'next' not in self.connected and expected is not None:
-            error_term = (expected - self.nodes) * (1 - self.nodes)
-
+        elif "next" not in self.connected and expected is not None:
+            error_term = (expected - self.nodes) * self.errorf(
+                self.nodes
+            )  # TODO: assuming sigmoid - adjusted for generic activation function
         if update:
             self.errors = error_term
-        
         return error_term
-    
