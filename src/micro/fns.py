@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
-class Derivable(ABC):
+class DifferentFn(ABC):
     @abstractmethod
     def fn(self):
         pass
@@ -13,7 +13,7 @@ class Derivable(ABC):
         pass
 
 
-class ActivationFunction(Derivable):
+class ActivationFunction(DifferentFn):
     def fn(self, x):
         pass
 
@@ -29,7 +29,7 @@ class Sigmoid(ActivationFunction):
         return x * (1 - x)
 
 
-class ErrorFunction(Derivable):
+class ErrorFunction(DifferentFn):
     def fn(self, expected, actual):
         pass
 
@@ -43,3 +43,11 @@ class MSE(ErrorFunction):
 
     def derivative(self, expected, actual):
         return expected - actual
+
+
+class CategoryCrossEntropy(ErrorFunction):
+    def fn(self, expected, actual):
+        return -np.sum(expected * np.log(actual))
+
+    def derivative(self, expected, actual):
+        return expected / actual
