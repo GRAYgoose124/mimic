@@ -23,7 +23,7 @@ class Trainer:
                 dataset.expected_output, config.learning_rate
             )
 
-            if epoch % 1000 == 0:
+            if epoch % (int(config.epochs * 0.1) or 1000) == 0:
                 print(f"Epoch {epoch}, MSE: {mse}")
 
         print("Final Weights:")
