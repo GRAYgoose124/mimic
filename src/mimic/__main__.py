@@ -2,7 +2,9 @@ import os
 import numpy as np
 import logging
 
+
 from . import *
+from .utils.weights import total_norm
 
 
 log = logging.getLogger(__name__)
@@ -45,7 +47,11 @@ def main():
     if not os.path.exists("data/models"):
         os.mkdir("data/models")
 
-    if not os.path.exists("data/models/xor.npz"):
+    if (
+        not os.path.exists("data/models/xor.npz")
+        or input("Load model? (Y/n): ").lower() == "n"
+    ):
+        # xor can be solved with only 2 hidden neurons - demo only
         M = Sequential([2, 4, 4, 1])
         can_skip_training = False
     else:
@@ -62,11 +68,16 @@ def main():
     if not skip_training:
         log.info("Training model...")
 
+        # if can_skip_training:
+        #     # normalize weights before training
+        #     log.info("Normalizing weights...")
+        #     total_norm(M.weights)
+
         T = Trainer
         T.train(
             M,
             TRAIN,
-            C=TrainingConfig(epochs=10000, learning_rate=0.25),
+            C=TrainingConfig(epochs=10000, learning_rate=0.2),
         )
 
     # testing and evaluation
@@ -75,13 +86,13 @@ def main():
     success = R.test()
 
     # save model
-    if success and (
-        not can_skip_training or input("Save model? (y/N): ").lower() == "y"
-    ):
+    if success or input("Save model? (y/N): ").lower() == "y":
         log.info("Saving model...")
         M.save("data/models/xor.npz")
 
     # visualization
+    # normalize weights before visualization, better looking
+    # total_norm(M.weights)
     vis.draw_network(M, filename="network.png", save=True)  # , show=True)
 
 
