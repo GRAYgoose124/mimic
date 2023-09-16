@@ -14,9 +14,9 @@ def simple_test(M, TEST):
 
 
 def main():
-    np.set_printoptions(precision=4)
     # for reproducibility:
     # np.random.seed(1)
+    np.set_printoptions(precision=4)
 
     # dataset
     if not os.path.exists("data"):
@@ -31,23 +31,43 @@ def main():
         TRAIN = TEST = Dataset.load("data/ds-xor.npz")
 
     # model
-    M = Sequential([2, 4, 4, 1])
+    if not os.path.exists("data/models"):
+        os.mkdir("data/models")
+
+    if not os.path.exists("data/models/xor.npz"):
+        M = Sequential([2, 4, 4, 1])
+        can_skip_training = False
+    else:
+        M = Sequential.load("data/models/xor.npz")
+        can_skip_training = True
 
     # training
-    T = Trainer
-    T.train(
-        M,
-        TRAIN,
-        C=TrainingConfig(epochs=10000, learning_rate=0.25),
-    )
+    skip_training = False
+    if can_skip_training:
+        if input("Skip training? (y/N): ").lower() == "y":
+            skip_training = True
+
+    if not skip_training:
+        T = Trainer
+        T.train(
+            M,
+            TRAIN,
+            C=TrainingConfig(epochs=10000, learning_rate=0.25),
+        )
 
     # testing and evaluation
     R = ModelRunner(M, TEST)
     R.add_test(simple_test)
-    R.test()
+    success = R.test()
+
+    # save model
+    if success and (
+        not can_skip_training or input("Save model? (y/N): ").lower() == "y"
+    ):
+        M.save("data/models/xor.npz")
 
     # visualization
-    vis.draw_network(M, filename="network.png", show=True, save=True)
+    vis.draw_network(M, filename="network.png", save=True)  # , show=True)
 
 
 if __name__ == "__main__":

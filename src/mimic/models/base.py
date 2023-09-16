@@ -75,3 +75,17 @@ class ANN(ABC):
                 self._G.nodes[(i, j)]["activations"] = activation[j]
 
         return self._G
+
+    def save(self, filename):
+        np.savez(
+            filename, **{"weight_" + str(i): w for i, w in enumerate(self.weights)}
+        )
+
+    @classmethod
+    def load(cls, filename):
+        data = np.load(filename)
+        weights = [data[f"weight_{i}"] for i in range(len(data))]
+        layer_sizes = [w.shape[0] for w in weights] + [weights[-1].shape[1]]
+        M = cls(layer_sizes)
+        M.weights = weights
+        return M
