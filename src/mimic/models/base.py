@@ -57,4 +57,8 @@ class ANN(ABC):
                 for k in range(weight.shape[1]):
                     G.add_edge((i, j), (i + 1, k), weight=weight[j][k])
 
+        for i, activation in enumerate(self.activations):
+            for j in range(activation.shape[0]):
+                G.nodes[(i, j)]["activations"] = activation[j]
+
         return G

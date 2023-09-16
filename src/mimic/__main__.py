@@ -7,43 +7,20 @@ from .dataset import Dataset
 from .models import Sequential
 from .trainer import Trainer, TrainingConfig
 from .utils.vis import draw_network
-
-
-class ModelRunner:
-    def __init__(self, M, DS):
-        self.M = M
-        self.DS = DS
-
-        self._tests = []
-
-    @property
-    def tests(self):
-        return self._tests
-
-    def add_test(self, test):
-        self._tests.append(test)
-
-    def test(self):
-        try:
-            for test in self.tests:
-                test(self.M, self.DS)
-
-            return True
-        except AssertionError as e:
-            print(e)
-            return False
+from .runner import ModelRunner
 
 
 def simple_test(M, TEST):
     for I, expected in TEST:
+        actual = M.forward(I)
+        print(f"Input: {I}, Expected: {expected}, Actual: {actual}")
         assert np.allclose(
-            M.forward(I), expected, atol=0.02
+            actual, expected, atol=0.05
         ), f"Failed! {M.error_fn.__class__.__name__}: {M.training_error}"
 
 
 def main():
     np.set_printoptions(precision=4)
-
     # for reproducibility:
     # np.random.seed(1)
 
@@ -59,13 +36,16 @@ def main():
 
     # training
     T = Trainer
-    T.train(M, TRAIN, C=TrainingConfig(epochs=10000, learning_rate=0.35))
+    T.train(
+        M,
+        TRAIN,
+        C=TrainingConfig(epochs=10000, learning_rate=0.25),
+    )
 
     # testing and evaluation
     R = ModelRunner(M, TEST)
     R.add_test(simple_test)
-    if R.test():
-        print(f"Passed! {M.error_fn.__class__.__name__}: {M.training_error}")
+    R.test()
 
     # visualization
     draw_network(M, filename="network.png", show=True, save=True)

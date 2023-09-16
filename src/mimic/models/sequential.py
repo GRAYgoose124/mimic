@@ -1,8 +1,7 @@
 import numpy as np
 
-
-from ..fns import ActivationFunction, ErrorFunction, MSE, Sigmoid
 from .base import ANN
+from ..fns import ActivationFunction, ErrorFunction, MSE, Sigmoid
 
 
 class Sequential(ANN):

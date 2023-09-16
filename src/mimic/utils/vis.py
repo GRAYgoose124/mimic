@@ -28,12 +28,13 @@ def draw_network(M, filename=None, show=False, save=False):
         arrows=True,
     )
 
-    activations = nx.get_node_attributes(G, "activation")
+    activations = nx.get_node_attributes(G, "activations")
     nx.draw_networkx_labels(
         G,
         pos=pos,
         labels=dict(zip(nodelist, [f"{x:.2f}" for x in activations.values()])),
         font_color="white",
+        font_size=10,
     )
 
     nx.draw_networkx_edge_labels(
