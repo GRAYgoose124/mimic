@@ -4,7 +4,7 @@ import numpy as np
 
 
 from .dataset import Dataset
-from .models.basic import MultiLayerNN
+from .models import Sequential
 from .trainer import Trainer, TrainingConfig
 from .utils.net import draw_network
 
@@ -37,8 +37,8 @@ class ModelRunner:
 def simple_test(M, TEST):
     for I, expected in TEST:
         assert np.allclose(
-            M.forward_propagate(I), expected, atol=0.02
-        ), f"Failed! MSE: {M._trained_mse}"
+            M.forward(I), expected, atol=0.02
+        ), f"Failed! {M.error_fn.__class__.__name__}: {M.training_error}"
 
 
 def main():
@@ -50,12 +50,12 @@ def main():
     # dataset
     # TRAIN, TEST = Dataset().split(.1) # 10% separate test instead of full test and no separate train
     TRAIN = TEST = Dataset(
-        input_data=np.array([[0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]]),
-        expected_output=np.array([[0, 1], [1, 0], [1, 0], [0, 1]]),
+        input_data=np.array([[0, 0], [0, 1], [1, 0], [1, 1]]),
+        expected_output=np.array([[0], [1], [1], [0]]),
     )
 
     # model
-    M = MultiLayerNN([3, 8, 4, 2])
+    M = Sequential([2, 4, 4, 1])
 
     # training
     T = Trainer
@@ -65,7 +65,7 @@ def main():
     R = ModelRunner(M, TEST)
     R.add_test(simple_test)
     if R.test():
-        print(f"Passed! MSE: {M._trained_mse}")
+        print(f"Passed! {M.error_fn.__class__.__name__}: {M.training_error}")
 
     # visualization
     draw_network(M, filename="network.png", show=True, save=True)

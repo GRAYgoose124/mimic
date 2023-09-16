@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 from .dataset import Dataset
-from .models.basic import MultiLayerNN
+from .models.sequential import Sequential
 
 
 @dataclass
@@ -15,13 +15,11 @@ class TrainingConfig:
 class Trainer:
     @staticmethod
     def train(
-        model: MultiLayerNN, dataset: Dataset, config: TrainingConfig = TrainingConfig()
+        model: Sequential, dataset: Dataset, config: TrainingConfig = TrainingConfig()
     ):
         for epoch in range(config.epochs):
-            output = model.forward_propagate(dataset.input_data)
-            mse = model.backward_propagate(
-                dataset.expected_output, config.learning_rate
-            )
+            output = model.forward(dataset.input_data)
+            mse = model.backward(dataset.expected_output, config.learning_rate)
 
             if epoch % (int(config.epochs * 0.1) or 1000) == 0:
                 print(f"Epoch {epoch}, MSE: {mse}")
@@ -34,4 +32,4 @@ class Trainer:
         print("Final and Expected Output:")
         for o, e in zip(output, dataset.expected_output):
             print(f"Final: {o}, Expected: {e}")
-            model._trained_mse = mse
+            model.set_training_error(mse)

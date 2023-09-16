@@ -5,51 +5,6 @@ import tkinter
 import matplotlib.pyplot as plt
 
 
-# @vectorize
-def sigmoid(weighted_sum, gamma=1):
-    return 1 / (1 + e ** (-gamma * weighted_sum))
-
-
-# @vectorize
-def pd_sigmoid(output):
-    out = sigmoid(output)
-    return out * (1 - out)
-
-
-# For building graph:
-# class MultiLayerNN:
-#     def __init__(
-#         self,
-#         layer_sizes,
-#         activation_fn: ActivationFunction = Sigmoid(),
-#         error_fn: ErrorFunction = MSE(),
-#     ):
-#         self.layer_sizes = layer_sizes
-#         self.weights = []
-#         self.activations = []
-#         self.gradients = []
-
-#         self.activation_fn = activation_fn
-#         self.error_fn = error_fn
-
-#         # Initialize weights
-#         for i in range(len(layer_sizes) - 1):
-#             self.weights.append(np.random.rand(layer_sizes[i], layer_sizes[i + 1]))
-
-#     def forward_propagate(self, input_data):
-#         self.activations = [input_data]
-#         for weight in self.weights:
-#             output = self.activation_fn.fn(np.dot(self.activations[-1], weight))
-#             self.activations.append(output)
-#         return self.activations[-1]
-
-
-def build_network_graph(N):
-    G = nx.DiGraph()
-
-    return G
-
-
 def draw_network(M, filename=None, show=False, save=False):
     G = M.to_networkx()
 

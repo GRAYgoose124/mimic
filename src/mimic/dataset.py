@@ -3,6 +3,10 @@ from dataclasses import dataclass
 import numpy as np
 
 
+def rand_dist(value, error=0.33):
+    return value + np.random.uniform(-error, error, len(value))
+
+
 @dataclass
 class Dataset:
     input_data: np.ndarray
@@ -34,3 +38,15 @@ class Dataset:
 
     def __repr__(self):
         return f"Dataset(input_data={self.input_data}, expected_output={self.expected_output})"
+
+    def fuzzify(self, f=rand_dist, variance=0.1):
+        """Fuzzify a dataset by up to 10%."""
+        for inp, outp in self:
+            inp, outp = np.array(inp), np.array(outp)
+
+            # if np.random.uniform(0, 1) > 0.5:
+            inp = f(inp, error=variance)
+            # else:
+            #     outp = f(outp, error=variance)
+
+            yield inp, outp
