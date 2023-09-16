@@ -1,9 +1,13 @@
 """Visualization utilities for the mimic package."""
-from numpy import vectorize, e
-import networkx as nx
-
+import logging
 import tkinter
+import networkx as nx
 import matplotlib.pyplot as plt
+
+from numpy import vectorize, e
+
+
+log = logging.getLogger(__name__)
 
 
 def draw_network(M, filename=None, show=False, save=False):
@@ -64,6 +68,7 @@ def draw_network(M, filename=None, show=False, save=False):
             filename = "../output/network.png"
 
         plt.savefig(filename)
+        log.info(f"Saved network visualization to {filename}")
 
     if show:
         plt.show()

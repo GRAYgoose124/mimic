@@ -1,11 +1,15 @@
-from dataclasses import dataclass
-
+import logging
 import numpy as np
+
+from dataclasses import dataclass
 
 
 from ..utils.dataset import Dataset
 from ..models.sequential import Sequential
 from ..utils.weights import total_norm
+
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -29,17 +33,17 @@ class Trainer:
                 total_norm(M.weights)
 
             if epoch % (int(C.epochs * 0.1) or 1000) == 0:
-                print(f"Epoch {epoch}, {M.error_fn.__class__.__name__}: {error}")
+                log.info(f"Epoch {epoch}, {M.error_fn.__class__.__name__}: {error}")
         M.set_training_error(error)
 
         if C.post_normalize:
             # normalize all weights in all layers
             total_norm(M.weights)
 
-        print("Final Weights:")
+        log.info("Final Weights:")
         for i, w in enumerate(M.weights):
-            print(f"Layer {i+1} weights:\n{w}")
+            log.info(f"Layer {i+1} weights:\n{w}")
 
-        print("Final and Expected Output:")
+        log.info("Final and Expected Output:")
         for o, e in zip(output, DS.expected_output):
-            print(f"Final: {o}, Expected: {e}")
+            log.info(f"Final: {o}, Expected: {e}")

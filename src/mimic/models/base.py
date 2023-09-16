@@ -1,9 +1,13 @@
-from abc import ABC, abstractmethod
 import numpy as np
 import networkx as nx
+import logging
 
+from abc import ABC, abstractmethod
 
 from ..utils.fns import ActivationFunction, ErrorFunction, MSE, Sigmoid
+
+
+log = logging.getLogger(__name__)
 
 
 class ANN(ABC):
@@ -49,7 +53,7 @@ class ANN(ABC):
 
     def to_networkx(self):
         if self._G is None:
-            # create if not yet created
+            log.debug("Creating networkx graph")
             G = nx.DiGraph()
 
             # add nodes
@@ -64,7 +68,7 @@ class ANN(ABC):
 
             self._G = G
         else:
-            # just update weights
+            log.debug("Updating networkx graph")
             for i, weight in enumerate(self.weights):
                 for j, k in np.ndindex(weight.shape):
                     self._G.edges[(i, j), (i + 1, k)]["weight"] = weight[j][k]

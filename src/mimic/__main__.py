@@ -1,7 +1,11 @@
 import os
 import numpy as np
+import logging
 
 from . import *
+
+
+log = logging.getLogger(__name__)
 
 
 def simple_test(M, TEST):
@@ -14,11 +18,17 @@ def simple_test(M, TEST):
 
 
 def main():
-    # for reproducibility:
-    # np.random.seed(1)
-    np.set_printoptions(precision=4)
+    # config
+    logging.basicConfig(level=logging.INFO)
 
-    # dataset
+    np.set_printoptions(precision=4)
+    seed = None
+    if seed is not None:
+        log.info(f"Setting random seed to {seed}")
+        np.random.seed(seed)
+
+    # init dataset
+    log.info("Initializing dataset...")
     if not os.path.exists("data"):
         TRAIN = TEST = Dataset(  # TRAIN, TEST = Dataset(
             input_data=np.array([[0, 0], [0, 1], [1, 0], [1, 1]]),
@@ -30,7 +40,8 @@ def main():
         # TRAIN, TEST = Dataset.load("data/ds-xor.npz").split(.1)
         TRAIN = TEST = Dataset.load("data/ds-xor.npz")
 
-    # model
+    # init model
+    log.info("Initializing model...")
     if not os.path.exists("data/models"):
         os.mkdir("data/models")
 
@@ -39,6 +50,7 @@ def main():
         can_skip_training = False
     else:
         M = Sequential.load("data/models/xor.npz")
+        log.info("Loaded model from file.")
         can_skip_training = True
 
     # training
@@ -48,6 +60,8 @@ def main():
             skip_training = True
 
     if not skip_training:
+        log.info("Training model...")
+
         T = Trainer
         T.train(
             M,
@@ -56,14 +70,15 @@ def main():
         )
 
     # testing and evaluation
-    R = ModelRunner(M, TEST)
-    R.add_test(simple_test)
+    log.info("Testing model...")
+    R = ModelRunner(M, TEST, tests=[simple_test])
     success = R.test()
 
     # save model
     if success and (
         not can_skip_training or input("Save model? (y/N): ").lower() == "y"
     ):
+        log.info("Saving model...")
         M.save("data/models/xor.npz")
 
     # visualization
