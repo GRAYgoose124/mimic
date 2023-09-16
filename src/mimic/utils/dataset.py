@@ -1,6 +1,7 @@
-from dataclasses import dataclass
-
+import os
 import numpy as np
+
+from dataclasses import dataclass
 
 
 def rand_dist(value, error=0.33):
@@ -51,7 +52,11 @@ class Dataset:
 
             yield inp, outp
 
-    def save(self, filename):
+    def save(self, filename, mkdirs=True):
+        if mkdirs:
+            if not os.path.exists(os.path.dirname(filename)):
+                os.makedirs(os.path.dirname(filename))
+
         np.savez(
             filename, input_data=self.input_data, expected_output=self.expected_output
         )

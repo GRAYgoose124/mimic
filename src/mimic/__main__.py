@@ -93,7 +93,7 @@ def main():
     # visualization
     # normalize weights before visualization, better looking
     # total_norm(M.weights)
-    vis.draw_network(M, filename="network.png", save=True)  # , show=True)
+    vis.draw_network(M, filename="xor_model.png", save=True)  # , show=True)
 
 
 if __name__ == "__main__":
