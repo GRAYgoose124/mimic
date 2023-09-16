@@ -1,13 +1,6 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import numpy as np
 
-
-from .dataset import Dataset
-from .models import Sequential
-from .trainer import Trainer, TrainingConfig
-from .utils.vis import draw_network
-from .runner import ModelRunner
+from . import *
 
 
 def simple_test(M, TEST):
@@ -48,7 +41,7 @@ def main():
     R.test()
 
     # visualization
-    draw_network(M, filename="network.png", show=True, save=True)
+    vis.draw_network(M, filename="network.png", show=True, save=True)
 
 
 if __name__ == "__main__":

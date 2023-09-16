@@ -3,9 +3,9 @@ from dataclasses import dataclass
 import numpy as np
 
 
-from .dataset import Dataset
-from .models.sequential import Sequential
-from .utils.weights import total_norm
+from ..utils.dataset import Dataset
+from ..models.sequential import Sequential
+from ..utils.weights import total_norm
 
 
 @dataclass

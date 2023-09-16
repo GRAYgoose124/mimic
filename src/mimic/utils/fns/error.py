@@ -1,34 +1,6 @@
-from abc import ABC, abstractmethod
-
 import numpy as np
 
-# TODO: np.vectorize fn/derivative
-
-
-class DifferentFn(ABC):
-    @abstractmethod
-    def fn(self):
-        pass
-
-    @abstractmethod
-    def derivative(self):
-        pass
-
-
-class ActivationFunction(DifferentFn):
-    def fn(self, x):
-        pass
-
-    def derivative(self, x):
-        pass
-
-
-class Sigmoid(ActivationFunction):
-    def fn(self, x):
-        return 1 / (1 + np.exp(-x))
-
-    def derivative(self, x):
-        return x * (1 - x)
+from .base import DifferentFn
 
 
 class ErrorFunction(DifferentFn):

@@ -1,3 +1,4 @@
+"""Visualization utilities for the mimic package."""
 from numpy import vectorize, e
 import networkx as nx
 
