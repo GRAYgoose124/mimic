@@ -22,6 +22,3 @@ pytest = "^7.2.1"
 
 [tool.poetry.scripts]
 mimic = "mimic.__main__:main"
-mimic-gpu = "mimic.gpu.__main__:main"
-mimic-app = "mimic.app.__main__:app"
-micro = "micro.__main__:main"

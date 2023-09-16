@@ -1,5 +1,5 @@
 import numpy as np
-
+import networkx as nx
 from ..fns import ActivationFunction, ErrorFunction, MSE, Sigmoid
 
 
@@ -47,3 +47,23 @@ class MultiLayerNN:
             )
 
         return self.error_fn.fn(output_data, self.activations[-1])
+
+    def __len__(self):
+        return len(self.weights)
+
+    def __getitem__(self, index):
+        return self.weights[index]
+
+    def to_networkx(self):
+        G = nx.DiGraph()
+
+        for i, layer_size in enumerate(self.layer_sizes):
+            for j in range(layer_size):
+                G.add_node((i, j), pos=(i, j))
+
+        for i, weight in enumerate(self.weights):
+            for j in range(weight.shape[0]):
+                for k in range(weight.shape[1]):
+                    G.add_edge((i, j), (i + 1, k), weight=weight[j][k])
+
+        return G
