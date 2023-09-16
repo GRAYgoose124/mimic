@@ -50,3 +50,15 @@ class Dataset:
             #     outp = f(outp, error=variance)
 
             yield inp, outp
+
+    def save(self, filename):
+        np.savez(
+            filename, input_data=self.input_data, expected_output=self.expected_output
+        )
+
+    @staticmethod
+    def load(filename):
+        data = np.load(filename)
+        return Dataset(
+            input_data=data["input_data"], expected_output=data["expected_output"]
+        )

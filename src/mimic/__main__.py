@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from . import *
@@ -18,11 +19,16 @@ def main():
     # np.random.seed(1)
 
     # dataset
-    # TRAIN, TEST = Dataset().split(.1) # 10% separate test instead of full test and no separate train
-    TRAIN = TEST = Dataset(
-        input_data=np.array([[0, 0], [0, 1], [1, 0], [1, 1]]),
-        expected_output=np.array([[0], [1], [1], [0]]),
-    )
+    if not os.path.exists("data"):
+        TRAIN = TEST = Dataset(  # TRAIN, TEST = Dataset(
+            input_data=np.array([[0, 0], [0, 1], [1, 0], [1, 1]]),
+            expected_output=np.array([[0], [1], [1], [0]]),
+        )  # .split(.1)
+        os.mkdir("data")
+        TRAIN.save("data/ds-xor.npz")
+    else:
+        # TRAIN, TEST = Dataset.load("data/ds-xor.npz").split(.1)
+        TRAIN = TEST = Dataset.load("data/ds-xor.npz")
 
     # model
     M = Sequential([2, 4, 4, 1])
