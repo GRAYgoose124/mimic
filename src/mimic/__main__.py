@@ -6,7 +6,7 @@ import numpy as np
 from .dataset import Dataset
 from .models import Sequential
 from .trainer import Trainer, TrainingConfig
-from .utils.net import draw_network
+from .utils.vis import draw_network
 
 
 class ModelRunner:
@@ -59,7 +59,7 @@ def main():
 
     # training
     T = Trainer
-    T.train(M, TRAIN, config=TrainingConfig(epochs=10000, learning_rate=0.35))
+    T.train(M, TRAIN, C=TrainingConfig(epochs=10000, learning_rate=0.35))
 
     # testing and evaluation
     R = ModelRunner(M, TEST)
