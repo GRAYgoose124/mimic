@@ -21,7 +21,9 @@ def simple_test(M, TEST):
 
 def main():
     # config
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
+    logging.getLogger("PIL").setLevel(logging.INFO)
 
     np.set_printoptions(precision=4)
     seed = None
@@ -41,6 +43,7 @@ def main():
     else:
         # TRAIN, TEST = Dataset.load("data/ds-xor.npz").split(.1)
         TRAIN = TEST = Dataset.load("data/ds-xor.npz")
+        log.debug(f"Loaded dataset from file: {TRAIN}")
 
     # init model
     log.info("Initializing model...")
@@ -72,7 +75,8 @@ def main():
         #     # normalize weights before training
         #     log.info("Normalizing weights...")
         #     total_norm(M.weights)
-
+        TRAIN = TRAIN.fuzzify()
+        print(TRAIN)
         T = Trainer
         T.train(
             M,
@@ -93,7 +97,9 @@ def main():
     # visualization
     # normalize weights before visualization, better looking
     # total_norm(M.weights)
-    vis.draw_network(M, filename="xor_model.png", save=True)  # , show=True)
+    vis.draw_linear_layer_network(
+        M, filename="xor_model.png", save=True
+    )  # , show=True)
 
 
 if __name__ == "__main__":

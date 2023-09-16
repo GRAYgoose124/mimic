@@ -10,7 +10,7 @@ from numpy import vectorize, e
 log = logging.getLogger(__name__)
 
 
-def draw_network(M, filename=None, show=False, save=False):
+def draw_linear_layer_network(M, filename=None, show=False, save=False):
     G = M.to_networkx()
 
     plt.figure(figsize=(12, 8))

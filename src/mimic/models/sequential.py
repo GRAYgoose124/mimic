@@ -1,7 +1,11 @@
+import logging
 import numpy as np
 
 from .base import ANN
 from ..utils.fns import ActivationFunction, ErrorFunction, MSE, Sigmoid
+
+
+log = logging.getLogger(__name__)
 
 
 class Sequential(ANN):
