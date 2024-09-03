@@ -1,11 +1,11 @@
-__pycache__/*
 .ipynb_checkpoints/*
-**/*.egg-info/*
-**/__pycache__/*
 .venv/*
-**/git *.pyc
+*git-ignored*
+*.pyc
 .vscode/*
 *.lock
 output/*
 data/*
 *.png
+*.pyc
+*.pkl
