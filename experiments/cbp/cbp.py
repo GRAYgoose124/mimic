@@ -87,6 +87,11 @@ class ContinualPPO:
         self.value_coef = 0.5  # New: coefficient for value loss
         self.entropy_coef = 0.01  # New: coefficient for entropy regularization
 
+        # Initialize utilities, average activations, and ages
+        self.utilities = [torch.zeros(hidden_dim) for _ in range(2)]  # for hidden layers
+        self.avg_activations = [torch.zeros(hidden_dim) for _ in range(2)]
+        self.ages = [torch.zeros(hidden_dim) for _ in range(2)]
+
     def get_action(self, state):
         if isinstance(state, (list, np.ndarray)):
             state = torch.FloatTensor(state)
@@ -145,55 +150,61 @@ class ContinualPPO:
     def apply_cbp(self, network):
         linear_layers = [layer for layer in network.modules() if isinstance(layer, nn.Linear)]
         
-        utilities = [torch.zeros(layer.out_features, device=layer.weight.device) for layer in linear_layers]
-        feature_activations = [torch.zeros(layer.out_features, device=layer.weight.device) for layer in linear_layers]
-        ages = [torch.zeros(layer.out_features, device=layer.weight.device) for layer in linear_layers]
-        z_values = [torch.zeros(layer.out_features, device=layer.weight.device) for layer in linear_layers]
-        y_values = [torch.zeros(layer.out_features, device=layer.weight.device) for layer in linear_layers]
-
-        self.update_utilities(linear_layers, utilities, feature_activations, ages, z_values, y_values)
-        self.replace_features(linear_layers, utilities, ages)
-
-    def update_utilities(self, linear_layers, utilities, feature_activations, ages, z_values, y_values):
         for l in range(len(linear_layers) - 1):
-            h_l = linear_layers[l].output.mean(dim=0)
-            w_l = linear_layers[l+1].weight
-            w_l_prev = linear_layers[l].weight if l > 0 else None
-
-            f_l = (1 - self.eta) * h_l + self.eta * feature_activations[l]
-            f_l_hat = feature_activations[l] / (1 - self.eta ** ages[l].clamp(min=1e-8))
-
-            z_l = (1 - self.eta) * torch.abs(h_l - f_l_hat) * torch.sum(torch.abs(w_l), dim=0) + self.eta * z_values[l]
-
-            if w_l_prev is not None:
-                y_l = torch.abs(h_l - f_l_hat) * torch.sum(torch.abs(w_l), dim=0) / torch.sum(torch.abs(w_l_prev), dim=1).clamp(min=1e-8)
-            else:
-                y_l = torch.abs(h_l - f_l_hat) * torch.sum(torch.abs(w_l), dim=0)
-
-            u_l = (1 - self.eta) * y_l + self.eta * utilities[l]
-            u_l_hat = u_l / (1 - self.eta ** ages[l].clamp(min=1e-8))
-
-            feature_activations[l] = f_l
-            z_values[l] = z_l
-            y_values[l] = y_l
-            utilities[l] = u_l_hat
-            ages[l] += 1
-
-    def replace_features(self, linear_layers, utilities, ages):
-        for l in range(len(linear_layers)):
-            eligible_features = (ages[l] > self.m).float()
-            num_replace = int(self.rho * eligible_features.sum().item())
+            # Update utilities
+            self.update_utilities(l, linear_layers[l], linear_layers[l+1])
+            
+            # Find eligible features
+            eligible = self.ages[l] > self.m
+            num_replace = int(self.rho * eligible.sum().item())
             
             if num_replace > 0:
-                _, indices = torch.topk(utilities[l] * eligible_features, k=num_replace, largest=False)
-                
-                # Reset input weights
-                linear_layers[l].weight.data[:, indices] = torch.randn_like(linear_layers[l].weight.data[:, indices]) * 0.01
-                
-                # Reset output weights if not the last layer
-                if l < len(linear_layers) - 1:
-                    linear_layers[l+1].weight.data[indices, :] = 0
-                
-                # Reset utility, feature activation, and age
-                utilities[l][indices] = 0
-                ages[l][indices] = 0
+                # Replace features
+                _, indices = torch.topk(self.utilities[l] * eligible, k=num_replace, largest=False)
+                self.replace_features(l, indices, linear_layers[l], linear_layers[l+1])
+
+    def update_utilities(self, l, current_layer, next_layer):
+        # Get the output of the current layer (h_l)
+        h_l = current_layer.output
+
+        # Ensure dimensions match
+        if h_l.size() != self.avg_activations[l].size():
+            self.avg_activations[l] = torch.zeros_like(h_l)
+            self.utilities[l] = torch.zeros_like(h_l)
+            self.ages[l] = torch.zeros_like(h_l)
+
+        # Update average feature activation (f_l)
+        self.avg_activations[l] = (1 - self.eta) * h_l + self.eta * self.avg_activations[l]
+
+        # Bias-corrected estimate of average feature activation (f_hat_l)
+        f_hat_l = self.avg_activations[l] / (1 - self.eta ** self.ages[l])
+
+        # Update feature utility (z_l)
+        weight_magnitude = torch.sum(torch.abs(next_layer.weight.data), dim=0)
+        z_l = (1 - self.eta) * torch.abs(h_l - f_hat_l) * weight_magnitude + self.eta * self.utilities[l]
+
+        # Update overall utility (u_l)
+        input_weight_magnitude = torch.sum(torch.abs(current_layer.weight.data), dim=1)
+        y_l = torch.abs(h_l - f_hat_l) * weight_magnitude / input_weight_magnitude
+        self.utilities[l] = (1 - self.eta) * y_l + self.eta * self.utilities[l]
+
+        # Bias-corrected estimate of overall utility (u_hat_l)
+        u_hat_l = self.utilities[l] / (1 - self.eta ** self.ages[l])
+
+        # Update ages
+        self.ages[l] += 1
+
+        # Store updated utilities
+        self.utilities[l] = u_hat_l
+
+    def replace_features(self, l, indices, current_layer, next_layer):
+        # Reset input weights
+        current_layer.weight.data[:, indices] = torch.randn_like(current_layer.weight.data[:, indices]) * 0.01
+        
+        # Reset output weights
+        next_layer.weight.data[indices, :] = 0
+        
+        # Reset utility, average activation, and age
+        self.utilities[l][indices] = 0
+        self.avg_activations[l][indices] = 0
+        self.ages[l][indices] = 0

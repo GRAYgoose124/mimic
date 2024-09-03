@@ -18,7 +18,7 @@ eta = 0.99
 m = 100
 
 # Training parameters
-num_episodes = 1000
+num_episodes = 10000
 max_steps = 1000
 
 # Initialize environment and agent
@@ -61,9 +61,10 @@ for episode in range(num_episodes):
     total_loss, policy_loss, value_loss, entropy = agent.update(states, actions, rewards, next_states, log_probs, dones)
 
     # Print episode results
-    print(f"Episode {episode+1}/{num_episodes}, Reward: {episode_reward}, Steps: {step+1}, "
-          f"Loss: {total_loss:.4f}, Policy Loss: {policy_loss:.4f}, "
-          f"Value Loss: {value_loss:.4f}, Entropy: {entropy:.4f}")
+    if episode % (num_episodes // 100) == 0:
+        print(f"Episode {episode+1}/{num_episodes}, Reward: {episode_reward}, Steps: {step+1}, "
+            f"Loss: {total_loss:.4f}, Policy Loss: {policy_loss:.4f}, "
+            f"Value Loss: {value_loss:.4f}, Entropy: {entropy:.4f}")
 
     # Optional: Early stopping condition
     if episode_reward >= 495:  # CartPole is considered solved at 495 points
@@ -78,7 +79,7 @@ env = gym.make('CartPole-v1', render_mode='human')
 state, _ = env.reset()
 total_reward = 0
 
-for _ in range(max_steps*2):
+for _ in range(max_steps):
     action, _ = agent.get_action(state)
     next_state, reward, terminated, truncated, _ = env.step(action)
     done = terminated or truncated
@@ -87,6 +88,7 @@ for _ in range(max_steps*2):
 
     if done:
         break
+
 
 env.close()
 print(f"Test episode reward: {total_reward}")
